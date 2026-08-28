@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#e7e1d3" />
+    <meta name="description" content="Six offline learning activities for children aged 5–10. No child accounts, ads, or tracking." />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/assets/station-mark.svg" type="image/svg+xml" />
+    <link rel="preload" href="/assets/station-hero.webp" as="image" type="image/webp" fetchpriority="high" />
+    <title>Linux Learning Station — offline activities for ages 5–10</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to activities</a>
+    <div id="app"><main id="main"><p class="loading-state">Opening the station…</p></main></div>
+    <script type="module" src="/src/main.ts"></script>
+    <script>
+      /* Chromium can occasionally restore a cached document before evaluating its cached module. */
+      setTimeout(() => {
+        const loading = document.querySelector('.loading-state');
+        const moduleScript = document.querySelector('script[type="module"][src]');
+        if (loading && moduleScript) import(`${moduleScript.src}?offline-retry=1`);
+      }, 800);
+    </script>
+  </body>
+</html>
