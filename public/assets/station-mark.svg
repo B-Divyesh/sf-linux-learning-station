@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Linux Learning Station moss tile mark">
+  <rect width="512" height="512" rx="72" fill="#e7e1d3"/>
+  <path d="M82 94h348v286H82z" fill="#1d211c"/>
+  <path d="M106 118h300v190H106z" fill="#d1e0bf"/>
+  <path d="M106 332h300v24H106z" fill="#d9b84e"/>
+  <path d="M118 288c20-64 72-30 94-76 26-54 82-42 92 4 16 68 72 4 102 42v50H106z" fill="#315c3a"/>
+  <circle cx="176" cy="188" r="28" fill="#f7f4ea"/>
+  <path d="m270 164 52 82H218z" fill="#a5422e"/>
+</svg>
