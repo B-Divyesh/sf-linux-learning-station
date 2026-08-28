@@ -296,7 +296,7 @@ async function registerServiceWorker(): Promise<void> {
   registration.addEventListener('updatefound', () => registration.installing?.addEventListener('statechange', () => {
     if (registration.waiting && hadController) document.querySelector<HTMLElement>('#update-toast')?.removeAttribute('hidden');
   }));
-  navigator.serviceWorker.addEventListener('controllerchange', () => location.reload());
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadController) location.reload(); });
 }
 
 async function start(): Promise<void> {

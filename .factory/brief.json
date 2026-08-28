@@ -1,0 +1,30 @@
+{
+  "slug": "linux-learning-station",
+  "title": "Linux Learning Station",
+  "territory": "games-creative",
+  "user": "A parent or teacher setting up an older shared Linux computer for 5–10-year-olds who needs offline, age-progressive learning activities without accounts.",
+  "evidence": [
+    {
+      "url": "https://hn.algolia.com/api/v1/items/45945908",
+      "date": "2025-11-16",
+      "quote_or_summary": "A parent using GCompris for a five-year-old asks what comes next, saying free Linux educational games seem limited for older children."
+    },
+    {
+      "url": "https://github.com/microsoft/vscode/issues/56614",
+      "date": "2018-08-17",
+      "quote_or_summary": "A college Python instructor describes per-user installation as a classroom blocker and needs a ready-to-use environment for 50 students at login."
+    }
+  ],
+  "recurrence": "Two independent classroom/home setup requests expose a deployment problem alongside the content gap. Severity is medium-high where accounts, app installs, and weak connectivity exclude devices from use.",
+  "current_workaround": "Install assorted apps one by one, rely on browser sites, or default to GCompris past its intended level.",
+  "incumbents_and_gap": "GCompris, TuxMath, and web learning sites exist, but discovery and age progression are fragmented. The gap is a single offline launch page with a small curated progression and no child account.",
+  "smallest_useful_product": "Installable offline PWA with six original, local mini-activities (patterns, keyboarding, logic, spelling, number sense, creative drawing), parent-configured age bands, and printable progress code. Non-goals: a content marketplace, cloud profiles, and licensed game aggregation.",
+  "success_measure": "In five home/classroom pilots, an adult can install and start a child activity in under five minutes without creating an account; children return for three sessions in one week.",
+  "artifact_class": "pwa-offline",
+  "monetization": "one-time — schools and families can buy an offline bundle without tracking children or managing subscriptions.",
+  "constraints": "COPPA/GDPR-K by design: no telemetry, chat, ads, or external links in child mode; original or permissively licensed assets only; work on low-end Chromium.",
+  "est_build_effort": "M",
+  "why_distinct": "It solves local deployment and age progression with original micro-activities rather than cloning a commercial kids’ platform.",
+  "confidence": 3,
+  "state": "BUILT"
+}
