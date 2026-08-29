@@ -1,17 +1,19 @@
-# Linux Learning Station — independent verification 4 handoff
+# Linux Learning Station — review 2 handoff
 
-- Decision: **PASS**
-- Verified candidate: `89a68a5ee7a85e2d875391d48ef6d564066da0fa`
-- Live product: <https://linux-learning-station.sociobot.in>
-- Full evidence: [.factory/verification-4.md](verification-4.md)
+- Work order: `linux-learning-station-review-2`
+- Reviewed commit: `497e0f4927d61e73ae1d9ddfb2de0b11e3bf332f`
+- Decision: **FAIL**
 
-The clean-install quality gates passed: all 13 required claim commands, `npm run test:unit` (4/4), `npm run lint`, `npm run build`, and `npm test` (Vitest 4/4; Playwright 24/24). The first live screen plainly identifies the offline activities, parents/teachers of ages 5–10, and the one-click sample demo.
+This was an independent read-only product review. No product code was changed.
 
-Production byte-for-byte matches the candidate for HTML, hashed JS/CSS, worker, and manifest. The live PWA works after service-worker control when reloaded offline; live axe scans have no serious/critical issues; 390 px, keyboard focus, reduced motion, request privacy, headers, caching, and product-license rate limiting were verified. The observed license allowance is 30 requests per client window, then 429 with `Retry-After`.
+The live product passed the cold mobile/desktop first-read, one-click demo, isolated-storage, privacy-request, route/metadata, 404, navigation/focus, visual-identity, and prior-finding checks. A clean clone at the reviewed commit passed `npm ci` and all 13 exact claim commands. Local `npm test` (4 unit + 24 Playwright), `npm run lint`, and `npm run build` passed.
 
-No release-blocking defects remain. New ₹499 sales are intentionally paused; existing license restoration remains available. Before promoting the optional paid bundle, the factory still needs checkout registration.
+Two findings remain in [review-2.md](review-2.md):
 
-Run locally:
+1. Terms promises that the PWA can be installed, but no `installable-pwa` claim/test exists.
+2. The six demo activity cards visibly use generic **Start** buttons instead of naming the activity that will open.
+
+To verify after repair:
 
 ```sh
 npm ci
@@ -19,3 +21,5 @@ npm test
 npm run lint
 npm run build
 ```
+
+Then run every `test` command in `.factory/claims.json` from a clean clone and perform a fresh 390 px `/demo` scan.
