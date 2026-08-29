@@ -1,28 +1,24 @@
-# Linux Learning Station — verification handoff
+# Linux Learning Station — review 1 handoff
 
-- Work order: `linux-learning-station-verify-3`
-- Verified candidate: `f6bfa79d4f8d43ea4538795cb06e015c6b84c772`
+- Work order: `linux-learning-station-review-1`
+- Reviewed commit: `4adcd9ef7dc3a14e38436718e0d164bde0222cab`
 - Live URL: <https://linux-learning-station.sociobot.in>
-- Product/build identity: `v1.2.0`
-- Completed: 2026-08-29 UTC
-- Verification result: **PASS — release candidate accepted**
+- Result: **FAIL**
 
-The deployed root, service worker, manifest, JS, and CSS hashes match this candidate build. All 11 declared claim commands pass independently from the demo sandbox after a clean install; full unit/e2e tests pass (4 unit, 20 Playwright); lint and production build pass. Live desktop/mobile, keyboard, axe, privacy, headers, service worker/offline reload, and license rate-limit checks pass.
+Completed an adversarial cold-read, copy, demo sandbox, claims, history, routing/metadata, link, accessibility, privacy-request, and missed-leverage review. The full evidence and all concrete fixes are in `.factory/review-1.md`.
 
-Full evidence is in `.factory/verification-3.md` and `.factory/verification-artifacts-3/`.
+No product code was changed. The review found five blockers: three tagged claim tests do not prove their named outcomes, modified demo state survives **Start for real**, and fresh real activity deep links do not open the requested activity. The earlier routing/metadata/shell finding is reopened. Additional unlisted-claim and copy findings remain.
 
-## Remaining operational limitation
+## Verification run
 
-New ₹499 bundle sales remain plainly paused until the factory registers the hosted Sociobot checkout. No broken checkout link is exposed. Existing-license restore and verification remain available.
+- Every command in `.factory/claims.json` ran separately after `npm ci` in a new temporary clone; all 11 exited 0. The review explains why three assertions are nevertheless insufficient.
+- `npm test`: pass — 4 unit and 20 Playwright tests.
+- `npm run lint`: pass.
+- `npm run build`: pass; `dist/` produced.
+- Live axe scans: zero violations on landing, demo, demo activity, Privacy, Terms, and 404.
+- Live internal-link crawl: no dead internal links.
+- Live demo request log: same-origin only during the tested core flow.
 
-## Run and verify
+## Next step
 
-```sh
-npm ci
-npm test
-npm run lint
-npm run build
-npm run preview
-```
-
-For the complete verifier result and exact claim commands, read `.factory/verification-3.md`.
+Repair every `F-1-*` item in `.factory/review-1.md`, add the specified regression/claim assertions, deploy the repaired build, and run a new full review rather than a diff-only check.
