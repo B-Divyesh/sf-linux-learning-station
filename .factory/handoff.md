@@ -1,24 +1,36 @@
-# Linux Learning Station — review 1 handoff
+# Linux Learning Station — polish 1 handoff
 
-- Work order: `linux-learning-station-review-1`
-- Reviewed commit: `4adcd9ef7dc3a14e38436718e0d164bde0222cab`
-- Live URL: <https://linux-learning-station.sociobot.in>
-- Result: **FAIL**
+- Work order: `linux-learning-station-polish-1`
+- Base: `59bf91f83ba65f6149830b5f5ded547b24066066`
+- Repair commit: recorded after final commit
+- Product: <https://linux-learning-station.sociobot.in>
 
-Completed an adversarial cold-read, copy, demo sandbox, claims, history, routing/metadata, link, accessibility, privacy-request, and missed-leverage review. The full evidence and all concrete fixes are in `.factory/review-1.md`.
+## Delivered
 
-No product code was changed. The review found five blockers: three tagged claim tests do not prove their named outcomes, modified demo state survives **Start for real**, and fresh real activity deep links do not open the requested activity. The earlier routing/metadata/shell finding is reopened. Additional unlisted-claim and copy findings remain.
+Every `F-1-1` through `F-1-26` finding in `.factory/review-1.md` is repaired and mapped in `.factory/polish-1.md`. The PWA retains its concrete-and-moss visual system and static deployment class. The landing uses a direct `/?demo=1` isolated sample route with a persistent reset/exit banner. Exiting resets all changed sample progress before real mode. Real activity deep links survive first-run setup; route titles and social metadata update correctly; legal and 404 pages now share the site skeleton and complete metadata.
 
-## Verification run
+Claims are in `.factory/claims.json` and have observable Playwright coverage. The six-activity, offline, demo isolation, service-worker update, valid-license, age-range, and paused-sales checks now assert the outcome rather than the presence of controls.
 
-- Every command in `.factory/claims.json` ran separately after `npm ci` in a new temporary clone; all 11 exited 0. The review explains why three assertions are nevertheless insufficient.
-- `npm test`: pass — 4 unit and 20 Playwright tests.
-- `npm run lint`: pass.
-- `npm run build`: pass; `dist/` produced.
-- Live axe scans: zero violations on landing, demo, demo activity, Privacy, Terms, and 404.
-- Live internal-link crawl: no dead internal links.
-- Live demo request log: same-origin only during the tested core flow.
+## Verification
 
-## Next step
+- `npm run lint` — pass
+- `npm run build` — pass; `dist/` produced. Initial JS: 35.11 KB raw / 12.33 KB gzip; CSS: 18.84 KB raw / 4.98 KB gzip.
+- `npm run test:unit` — pass (4 tests).
+- Focused browser routes/accessibility run — pass (5 tests): deep link and metadata, direct demo status, keyboard/mobile regressions, axe sweep (cold/demo/activity/adult/legal), and title/focus regressions.
+- Every exact claim command in `.factory/claims.json` was run independently after the final build and passed. These include offline completion after reload, all six activity completions, demo exit/reset, real update activation/controller/cache marker, valid license verification, and local-only request capture.
+- Screenshots: `.factory/polish-1-mobile.png` (390 px first screen) and `.factory/polish-1-demo.png` (isolated sample board).
+- The supplied `verify-url.sh` was not present in this repository or worker image. Its title/lang/main/alt/console checks are covered by the Playwright accessibility sweep; no console errors were observed in its browser flows.
 
-Repair every `F-1-*` item in `.factory/review-1.md`, add the specified regression/claim assertions, deploy the repaired build, and run a new full review rather than a diff-only check.
+## Run and deploy
+
+```sh
+npm ci
+npm test
+npm run build
+```
+
+Publish `dist/` as the static site root using the work order’s static deployment configuration. `staticwebapp.config.json` is emitted into `dist/`.
+
+## Known gaps
+
+None in the reviewed acceptance scope. No AI feature was added because it would undermine the product’s offline, account-free learning task.

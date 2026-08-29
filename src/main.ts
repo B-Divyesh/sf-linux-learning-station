@@ -1,6 +1,6 @@
 import './style.css';
 import { activities, activityName, AGE_BANDS, keyPhrases, logicRounds, numberRounds, patternRounds, spellingRounds } from './data';
-import { clearStation, loadStation, replaceStation, saveAttempt, saveSettings, validateImport } from './db';
+import { clearStation, discardDemoStation, loadStation, replaceStation, saveAttempt, saveSettings, validateImport } from './db';
 import { cachedLicense, captureLicense, checkLicense, storeLicense, type LicenseState } from './license';
 import { activeDays, progressCode, todayPoints } from './progress';
 import { appPath, isDemoMode } from './mode';
@@ -14,7 +14,9 @@ let installPrompt: Event | null = null;
 let feedback = '';
 let activityState: { id: ActivityId; round: number; score: number; result?: { correct: boolean; answer: string } } | null = null;
 let routeMessage = '';
-const BUILD_VERSION = 'v1.2.0';
+let offlineReady = false;
+const BUILD_VERSION = 'v1.2.1';
+const SITE_URL = 'https://linux-learning-station.sociobot.in';
 
 const esc = (value: string) => value.replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char]!);
 
@@ -43,7 +45,7 @@ function shell(content: string, page = 'home'): string {
       </a>
       <nav class="site-nav" aria-label="Primary navigation"><a href="/demo">Demo</a><a href="/privacy/">Privacy</a></nav>
       <div class="status-chips" aria-label="Station status">
-        <span class="status-chip" id="connection-status"><span class="status-dot" aria-hidden="true"></span>${navigator.onLine ? 'Ready offline' : 'Offline'}</span>
+        <span class="status-chip" id="connection-status"><span class="status-dot" aria-hidden="true"></span>${navigator.onLine ? (offlineReady ? 'Ready offline' : 'Online') : 'Offline'}</span>
         ${page === 'home' ? '<button class="utility-button" data-action="toggle-adult" aria-expanded="' + adultOpen + '">Adult tools</button>' : ''}
       </div>
     </header>
@@ -61,12 +63,12 @@ function setupView(): string {
         <h1 tabindex="-1">Start offline learning activities</h1>
         <p class="lede">For parents and teachers setting up a shared computer for children aged 5–10.</p>
         <button class="button primary demo-button" data-action="try-demo">Try it with sample data</button>
-        <p class="action-note">Opens a ready-to-use station with example progress. Nothing is saved to your real station.</p>
+        <p class="action-note">Opens all six activities with ages 7–8 sample progress. Nothing is saved to your real station.</p>
+        <ul class="fact-list" aria-label="Key facts"><li>Six core activities are free</li><li>Progress stays on this computer</li><li>Works offline after the first visit</li><li>Optional bundle: ₹499 once</li></ul>
         <fieldset class="age-picker">
-          <legend>Which practice level fits best?</legend>
-          ${AGE_BANDS.map((age, index) => `<button class="age-slab" data-action="finish-setup" data-age="${age}"><span>Ages</span><strong>${age}</strong><small>${['First steps', 'Growing skills', 'Bigger challenges'][index]}</small></button>`).join('')}
+          <legend>Choose an age range</legend>
+          ${AGE_BANDS.map((age) => `<button class="age-slab" data-action="finish-setup" data-age="${age}"><span>Start activities for ages</span><strong>${age}</strong><small>Open the station board</small></button>`).join('')}
         </fieldset>
-        <ul class="fact-list" aria-label="Key facts"><li>Six core activities are free</li><li>Progress stays on this computer</li><li>Works offline after installation</li><li>Optional bundle: ₹499 once</li></ul>
       </div>
       <figure class="hero-figure">
         <img src="/assets/station-hero.webp" width="1200" height="800" alt="A rugged concrete computer desk with moss, a keyboard, paper objects, and a blank screen" fetchpriority="high" decoding="async" />
@@ -74,12 +76,12 @@ function setupView(): string {
       </figure>
     </section>
     <section class="landing-section how-section" aria-labelledby="how-heading">
-      <p class="eyebrow">How it works</p><h2 id="how-heading">Start in three steps</h2>
-      <ol class="step-list"><li><strong>Choose a practice level.</strong><span>Pick ages 5–6, 7–8, or 9–10.</span></li><li><strong>Start any activity.</strong><span>Each core session has three short rounds.</span></li><li><strong>Keep progress locally.</strong><span>Adults can print, export, import, or erase it.</span></li></ol>
+      <p class="eyebrow">Three steps</p><h2 id="how-heading">How it works</h2>
+      <ol class="step-list"><li><strong>Choose an age range.</strong><span>Pick ages 5–6, 7–8, or 9–10.</span></li><li><strong>Start any activity.</strong><span>Five guided activities have three short rounds. Drawing is one open session.</span></li><li><strong>Keep progress locally.</strong><span>Adults can print, export, import, or erase it.</span></li></ol>
     </section>
     <section class="landing-section limits-section" aria-labelledby="privacy-heading">
       <div><p class="eyebrow">Privacy</p><h2 id="privacy-heading">No child account or tracking</h2><p>The station does not send activity progress to us. It has no ads, chat, cloud profile, or third-party scripts.</p><a href="/privacy/">Read the privacy details</a></div>
-      <div class="price-slab"><p class="eyebrow">Optional bundle</p><h2>₹499 one time</h2><p>Adds five-round sessions and detailed printouts. Every core activity stays free.</p><p>New sales are paused. Existing licenses can be restored in Adult tools.</p></div>
+      <div class="price-slab"><p class="eyebrow">Optional bundle</p><h2>Optional activity bundle — ₹499 once</h2><p>Adds five-round sessions and detailed printouts. Every core activity stays free.</p><p>New licenses are not for sale now. Existing licenses can be restored in Adult tools.</p></div>
     </section>
     ${footer()}
   `, 'setup');
@@ -104,9 +106,9 @@ function adultPanel(): string {
     <aside class="adult-panel ${adultOpen ? 'is-open' : ''}" aria-label="Adult tools" ${adultOpen ? '' : 'hidden'}>
       <div class="adult-head"><div><p class="eyebrow">For a grown-up</p><h2>Station controls</h2></div><button class="icon-button" data-action="toggle-adult" aria-label="Close adult tools">×</button></div>
       ${feedback ? `<p class="feedback-banner" role="status">${esc(feedback)}</p>` : ''}
-      <section><h3>Practice level</h3><div class="segmented" role="group" aria-label="Age range">${AGE_BANDS.map((age) => `<button data-action="set-age" data-age="${age}" aria-pressed="${station.settings.ageBand === age}">${age}${station.settings.ageBand === age ? '<span class="sr-only"> selected</span>' : ''}</button>`).join('')}</div></section>
+      <section><h3>Age range</h3><div class="segmented" role="group" aria-label="Age range">${AGE_BANDS.map((age) => `<button data-action="set-age" data-age="${age}" aria-pressed="${station.settings.ageBand === age}">${age}${station.settings.ageBand === age ? '<span class="sr-only"> selected</span>' : ''}</button>`).join('')}</div></section>
       <section><h3>Progress that stays here</h3><div class="mini-stats"><span><strong>${summary.done}</strong> wins</span><span><strong>${summary.days}</strong> days</span><span><strong>${summary.points}</strong> points today</span></div><p class="code-label">Printable progress code <strong>${summary.code}</strong></p><div class="button-row"><button class="button secondary" data-action="print">Print progress</button><button class="button secondary" data-action="export">Export data</button><input id="import-file" class="file-input" type="file" accept="application/json" /><label for="import-file" class="button secondary file-button">Import data</label></div></section>
-      <section class="bundle-box"><span class="bundle-tab">Optional bundle</span><h3>${license.unlocked ? 'Workshop bundle unlocked' : 'Restore a workshop license'}</h3>${license.unlocked ? '<p>Thank you. Extended five-round sessions and detailed printouts are ready, even offline.</p>' : `<p>₹499 one time. Adds extended five-round practice and detailed printable week sheets. New sales are paused while hosted checkout is unavailable.</p><details open><summary>Have a license?</summary><form id="license-form"><label for="license-token">Paste license token</label><div class="input-row"><input id="license-token" name="token" autocomplete="off" required /><button class="button secondary" type="submit">Verify</button></div></form></details>`}<p class="quiet">${esc(license.notice)} Sociobot/Dodo is the merchant of record. Refunds are handled there.</p></section>
+      <section class="bundle-box"><span class="bundle-tab">Optional bundle</span><h3>${license.unlocked ? 'Workshop bundle unlocked' : 'Restore a workshop license'}</h3>${license.unlocked ? '<p>Thank you. Extended five-round sessions and detailed printouts are ready, even offline.</p>' : `<p>₹499 one time. Adds extended five-round practice and detailed printable week sheets. New licenses are not for sale now.</p><details open><summary>Have a license?</summary><form id="license-form"><label for="license-token">Paste license token</label><div class="input-row"><input id="license-token" name="token" autocomplete="off" required /><button class="button secondary" type="submit">Verify</button></div></form></details>`}<p class="quiet">${esc(license.notice)} Sociobot/Dodo is the merchant of record. Refunds are handled there.</p></section>
       <section><h3>Install & data</h3><p>Install once, then the activities and progress work without internet.</p><button class="button secondary" data-action="install" ${installPrompt ? '' : 'disabled'}>${installPrompt ? 'Install this station' : 'Install from your browser menu'}</button><button class="text-button danger" data-action="confirm-reset">Erase progress on this computer</button></section>
       <nav class="legal-links" aria-label="Legal"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a></nav>
     </aside>
@@ -120,10 +122,10 @@ function homeView(): string {
   const content = `
     <div class="station-layout screen-only">
       <section class="intro-block">
-        <div><p class="eyebrow">Ages ${station.settings.ageBand} · ${navigator.onLine ? 'saved on this computer' : 'working offline'}</p><h1 tabindex="-1">Choose today’s trail</h1><p class="lede">Short activities. Clear endings. Pick any slab to begin.</p></div>
+        <div><p class="eyebrow">Ages ${station.settings.ageBand} · ${navigator.onLine ? 'saved on this computer' : 'working offline'}</p><h1 tabindex="-1">Choose an activity</h1><p class="lede">Short activities. Clear endings. Pick any slab to begin.</p></div>
         <div class="today-stamp" aria-label="Today: ${summary.points} points"><span>Today</span><strong>${summary.points}</strong><small>points</small></div>
       </section>
-      ${station.attempts.length === 0 ? '<section class="empty-note"><span aria-hidden="true">↳</span><p><strong>A fresh station.</strong> Pick any activity. The first win will appear here — no account needed.</p></section>' : `<section class="return-note"><span aria-hidden="true">✓</span><p><strong>Welcome back.</strong> Last win: ${recent ? esc(activityName(recent.activity)) : 'keep exploring'}.</p><span>${summary.done} wins saved</span></section>`}
+      ${station.attempts.length === 0 ? '<section class="empty-note"><span aria-hidden="true">↳</span><p><strong>A fresh station.</strong> Pick any activity. The first win will appear here — no account needed.</p></section>' : `<section class="return-note"><span aria-hidden="true">✓</span><p><strong>Welcome back.</strong> Last win: ${recent ? esc(activityName(recent.activity)) : 'keep exploring'}.</p><span>${summary.done} ${summary.done === 1 ? 'win' : 'wins'} saved</span></section>`}
       <section class="activity-board" aria-labelledby="activity-heading"><h2 id="activity-heading" class="sr-only">Learning activities</h2>
         ${activities.map((item, index) => `<article class="activity-slab tone-${item.tone}">
           ${index === station.attempts.length % activities.length ? '<span class="next-tab">Try next</span>' : ''}
@@ -145,7 +147,7 @@ function printSheet(): string {
   const summary = progressSummary();
   const byActivity = activities.map((item) => ({ title: item.title, count: station.attempts.filter((attempt) => attempt.activity === item.id && attempt.correct).length }));
   const details = license.unlocked ? `<h3>Recent practice</h3><ul>${station.attempts.slice(-10).reverse().map((item) => `<li>${activityName(item.activity)} — ${esc(item.detail)} — ${new Date(item.createdAt).toLocaleDateString()}</li>`).join('') || '<li>No practice yet.</li>'}</ul>` : '';
-  return `<section class="print-sheet"><p class="eyebrow">Linux Learning Station</p><h2>Progress field note</h2><p>Practice level: Ages ${station.settings.ageBand}</p><div class="print-code">${summary.code}</div><p>${summary.days} active day${summary.days === 1 ? '' : 's'} · ${summary.done} successful rounds</p><table><thead><tr><th>Activity</th><th>Wins</th></tr></thead><tbody>${byActivity.map((item) => `<tr><td>${item.title}</td><td>${item.count}</td></tr>`).join('')}</tbody></table>${details}<p class="print-date">Printed ${new Date().toLocaleDateString()}</p></section>`;
+  return `<section class="print-sheet"><p class="eyebrow">Linux Learning Station</p><h2>Progress field note</h2><p>Age range: ${station.settings.ageBand}</p><div class="print-code">${summary.code}</div><p>${summary.days} active day${summary.days === 1 ? '' : 's'} · ${summary.done} successful rounds</p><table><thead><tr><th>Activity</th><th>Wins</th></tr></thead><tbody>${byActivity.map((item) => `<tr><td>${item.title}</td><td>${item.count}</td></tr>`).join('')}</tbody></table>${details}<p class="print-date">Printed ${new Date().toLocaleDateString()}</p></section>`;
 }
 
 function roundCount(): number { return license.unlocked ? 5 : 3; }
@@ -187,8 +189,8 @@ function activityView(id: ActivityId): string {
   const complete = current.round >= roundCount();
   const content = `<section class="play-page">
     <div class="play-top"><button class="back-button" data-action="home"><span aria-hidden="true">←</span> Station board</button><span>Ages ${station.settings.ageBand}</span></div>
-    <header class="activity-header"><p class="eyebrow">${info.kicker}</p><h1 tabindex="-1">${info.title}</h1>${!complete ? `<div class="round-meter" aria-label="Round ${current.round + 1} of ${roundCount()}"><span>Round ${current.round + 1} / ${roundCount()}</span><div><i data-progress="${(current.round / roundCount()) * 100}"></i></div></div>` : ''}</header>
-    <section class="task-slab" tabindex="-1" data-round-focus>${complete ? `<div class="session-complete"><span class="big-stamp" aria-hidden="true">${current.score >= 20 ? '✓' : '↗'}</span><p class="eyebrow">Trail complete</p><h2>${current.score} points saved</h2><p>That practice is stored on this computer. A short break helps learning stick.</p><div class="button-row"><button class="button primary" data-action="restart-activity">Play again</button><button class="button secondary" data-action="home">Choose another trail</button></div></div>` : activityTask(id, current.round)}</section>
+    <header class="activity-header"><p class="eyebrow">${info.kicker}</p><h1 tabindex="-1">${info.title}</h1>${!complete && id !== 'drawing' ? `<div class="round-meter" aria-label="Round ${current.round + 1} of ${roundCount()}"><span>Round ${current.round + 1} / ${roundCount()}</span><div><i data-progress="${(current.round / roundCount()) * 100}"></i></div></div>` : ''}</header>
+    <section class="task-slab" tabindex="-1" data-round-focus>${complete ? `<div class="session-complete"><span class="big-stamp" aria-hidden="true">${current.score >= 20 ? '✓' : '↗'}</span><p class="eyebrow">Activity complete</p><h2>${current.score} points saved</h2><p>That practice is stored on this computer. A short break helps learning stick.</p><div class="button-row"><button class="button primary" data-action="restart-activity">Play again</button><button class="button secondary" data-action="home">Choose another activity</button></div></div>` : activityTask(id, current.round)}</section>
     ${!license.unlocked && !complete ? '<p class="core-note">Core session · 3 rounds. Adult tools has an optional five-round bundle.</p>' : ''}
   </section>${footer()}`;
   return shell(`${demoBanner()}${content}`, 'activity');
@@ -207,8 +209,7 @@ function render(focusHeading = false): void {
   }
   document.body.classList.toggle('panel-open', adultOpen);
   document.querySelectorAll<HTMLElement>('.round-meter i[data-progress]').forEach((meter) => { meter.style.width = `${meter.dataset.progress}%`; });
-  const current = route();
-  document.title = current.page === 'activity' && current.id ? `${activityName(current.id)} — Linux Learning Station` : isDemoMode() ? 'Demo — Linux Learning Station' : 'Linux Learning Station — offline activities for ages 5–10';
+  updateMetadata();
   if (focusHeading) requestAnimationFrame(() => {
     const heading = document.querySelector<HTMLElement>('main h1');
     heading?.focus();
@@ -216,6 +217,33 @@ function render(focusHeading = false): void {
     if (announcer && routeMessage) announcer.textContent = routeMessage;
     routeMessage = '';
   });
+}
+
+function setMeta(selector: string, content: string): void {
+  document.head.querySelector<HTMLMetaElement>(selector)?.setAttribute('content', content);
+}
+
+function updateMetadata(): void {
+  const current = route();
+  const path = location.pathname === '/' && isDemoMode() ? '/demo' : location.pathname;
+  const canonical = `${SITE_URL}${path}`;
+  let title = 'Linux Learning Station — offline activities for ages 5–10';
+  let description = 'Six offline learning activities for children aged 5–10. No child accounts, ads, or tracking.';
+  if (current.page === 'activity' && current.id) {
+    title = `${activityName(current.id)} — Linux Learning Station`;
+    description = `${activityName(current.id)} is an offline learning activity for children aged 5–10.`;
+  } else if (isDemoMode()) {
+    title = 'Demo — Linux Learning Station';
+    description = 'Try all six offline learning activities with isolated sample progress.';
+  }
+  document.title = title;
+  document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.setAttribute('href', canonical);
+  setMeta('meta[name="description"]', description);
+  setMeta('meta[property="og:title"]', title);
+  setMeta('meta[property="og:description"]', description);
+  setMeta('meta[property="og:url"]', canonical);
+  setMeta('meta[name="twitter:title"]', title);
+  setMeta('meta[name="twitter:description"]', description);
 }
 
 function announce(message: string): void {
@@ -282,10 +310,12 @@ app.addEventListener('click', async (event) => {
   const action = button.dataset.action;
   if (action === 'finish-setup' || action === 'set-age') {
     station.settings = { ...station.settings, ageBand: button.dataset.age as AgeBand, setupDone: true };
-    await saveSettings(station.settings); adultOpen = false; feedback = `Practice level set to ages ${station.settings.ageBand}.`; navigate('/', 'Station board opened.');
+    await saveSettings(station.settings); adultOpen = false; feedback = `Age range set to ${station.settings.ageBand}.`;
+    const requested = route();
+    navigate(action === 'finish-setup' && requested.page === 'activity' && requested.id ? `/activity/${requested.id}` : '/', requested.page === 'activity' ? `${activityName(requested.id!)} opened.` : 'Station board opened.');
   }
-  if (action === 'try-demo') location.assign('/demo');
-  if (action === 'start-real') location.assign('/');
+  if (action === 'try-demo') location.assign('/?demo=1');
+  if (action === 'start-real') { await discardDemoStation(); location.assign('/'); }
   if (action === 'reset-demo') { await clearStation(); station = await loadStation(); feedback = 'Demo reset to its sample progress.'; render(); }
   if (action === 'toggle-adult') {
     adultOpen = !adultOpen;
@@ -360,6 +390,8 @@ async function registerServiceWorker(): Promise<void> {
     if (registration.waiting && hadController) showUpdateNotice();
   }));
   navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadController) location.reload(); });
+  const active = await navigator.serviceWorker.ready;
+  if (active.active && navigator.serviceWorker.controller) { offlineReady = true; render(); }
 }
 
 async function start(): Promise<void> {

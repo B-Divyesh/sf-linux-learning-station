@@ -4,13 +4,28 @@ import AxeBuilder from '@axe-core/playwright';
 async function setup(page: import('@playwright/test').Page, age = '7–8') {
   await page.goto('/');
   await page.getByRole('button', { name: new RegExp(age.replace('–', '.')) }).click();
-  await expect(page.getByRole('heading', { name: 'Choose today’s trail' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Choose an activity' })).toBeVisible();
 }
 
 test('@claim:six-free-activities demo exposes all six free activities at mobile width', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/demo');
   await expect(page.locator('.activity-slab')).toHaveCount(6);
+  const paths: Array<[string, () => Promise<void>]> = [
+    ['Pattern Quarry', async () => { await page.locator('[data-action="answer-option"][data-value="●"]').click(); }],
+    ['Key Trail', async () => { await page.getByLabel('Your typing').fill('quiet keys'); await page.getByRole('button', { name: 'Check typing' }).click(); }],
+    ['Logic Bridges', async () => { await page.locator('[data-action="answer-option"][data-value="It is green"]').click(); }],
+    ['Word Workshop', async () => { await page.getByLabel('Build the word').fill('plant'); await page.getByRole('button', { name: 'Check word' }).click(); }],
+    ['Number Stones', async () => { await page.locator('[data-action="answer-option"][data-value="8"]').click(); }],
+    ['Moss Sketchbook', async () => { await page.getByRole('button', { name: 'Add dot' }).click(); await page.getByRole('button', { name: 'Save this drawing session' }).click(); }],
+  ];
+  for (const [name, complete] of paths) {
+    await page.getByRole('button', { name: `Start ${name}` }).click();
+    await complete();
+    await expect(page.getByRole('heading', { name: /Good noticing!|points saved/ })).toBeVisible();
+    await expect(page.getByText(/₹499|Restore a workshop license/)).toHaveCount(0);
+    await page.getByRole('button', { name: 'Station board' }).click();
+  }
   await expect(page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).resolves.toBe(true);
   // axe's package permits newer Playwright peers; runtime APIs used here are stable.
   const results = await new AxeBuilder({ page: page as never }).analyze();
@@ -50,11 +65,11 @@ test('adult tools expose local data and legal controls', async ({ page }) => {
   await page.getByRole('button', { name: 'Adult tools', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Station controls' })).toBeVisible();
   await expect(page.getByLabel('Adult tools', { exact: true }).getByText(/MOSS-78-/)).toBeVisible();
-  await expect(page.getByText('New sales are paused while hosted checkout is unavailable.')).toBeVisible();
+  await expect(page.getByText('New licenses are not for sale now.')).toBeVisible();
   await expect(page.getByLabel('Legal').getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', '/privacy/');
 });
 
-test('@claim:offline-reload demo station reloads while fully offline', async ({ page, context }) => {
+test('@claim:offline-reload demo station completes and saves activity while fully offline after first visit', async ({ page, context }) => {
   await page.goto('/demo');
   await page.evaluate(() => navigator.serviceWorker.ready);
   await page.reload();
@@ -66,23 +81,50 @@ test('@claim:offline-reload demo station reloads while fully offline', async ({ 
   })).resolves.toBe(true);
   await context.setOffline(true);
   await page.reload();
-  await expect(page.getByRole('heading', { name: 'Choose today’s trail' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Choose an activity' })).toBeVisible();
   await expect(page.getByText(/working offline/i)).toBeVisible();
+  await page.getByRole('button', { name: 'Start Pattern Quarry' }).click();
+  await page.locator('[data-action="answer-option"][data-value="●"]').click();
+  await expect(page.getByRole('heading', { name: 'Good noticing!' })).toBeVisible();
+  await page.getByRole('button', { name: 'Station board' }).click();
+  await expect(page.getByText('3 wins saved')).toBeVisible();
 });
 
 test('privacy and terms are real standalone pages', async ({ page }) => {
   await page.goto('/privacy/');
   await expect(page.getByRole('heading', { level: 1, name: 'Privacy' })).toBeVisible();
+  await expect(page.locator('meta[property="og:title"]')).toHaveAttribute('content', 'Privacy — Linux Learning Station');
   await page.goto('/terms/');
   await expect(page.getByRole('heading', { level: 1, name: 'Terms' })).toBeVisible();
+  await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute('content', 'summary_large_image');
 });
 
-test('@claim:demo-sandbox keeps activity progress out of the real database', async ({ page, context }) => {
+test('real activity deep links survive setup and set route-specific metadata', async ({ page }) => {
+  await page.goto('/activity/patterns');
+  await expect(page.getByRole('heading', { name: 'Start offline learning activities' })).toBeVisible();
+  await page.getByRole('button', { name: /Start activities for ages\s+7.8/ }).click();
+  await expect(page).toHaveURL(/\/activity\/patterns$/);
+  await expect(page.getByRole('heading', { name: 'Pattern Quarry' })).toBeVisible();
+  await expect(page).toHaveTitle('Pattern Quarry — Linux Learning Station');
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://linux-learning-station.sociobot.in/activity/patterns');
+  await expect(page.locator('meta[property="og:title"]')).toHaveAttribute('content', 'Pattern Quarry — Linux Learning Station');
+});
+
+test('demo entry and offline status reflect actual service-worker readiness', async ({ page }) => {
+  await page.goto('/?demo=1');
+  await expect(page.getByLabel('Demo mode')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Choose an activity' })).toBeVisible();
+  await expect.poll(() => page.locator('#connection-status').textContent()).toMatch(/Ready offline|Online/);
+  await page.reload();
+  await expect.poll(() => page.locator('#connection-status').textContent()).toContain('Ready offline');
+});
+
+test('@claim:demo-sandbox discards changed sample progress on exit and keeps it out of real data', async ({ page, context }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Try it with sample data' }).click();
-  await expect(page).toHaveURL(/\/demo$/);
+  await expect(page).toHaveURL(/\?demo=1$/);
   await expect(page.getByLabel('Demo mode')).toContainText('Demo — sample data, nothing is saved');
-  await expect(page.getByRole('heading', { name: 'Choose today’s trail' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Choose an activity' })).toBeVisible();
   await expect(page.getByText('2 wins saved')).toBeVisible();
   await page.getByRole('button', { name: 'Start Pattern Quarry' }).click();
   await expect(page).toHaveURL(/\/demo\/activity\/patterns$/);
@@ -90,18 +132,19 @@ test('@claim:demo-sandbox keeps activity progress out of the real database', asy
   await page.locator('[data-action="answer-option"][data-value="●"]').click();
   await expect(page.getByRole('heading', { name: 'Good noticing!' })).toBeVisible();
   await page.getByRole('button', { name: 'Station board' }).click();
-  await page.getByRole('button', { name: 'Reset demo' }).click();
-  await expect(page.getByText('2 wins saved')).toBeVisible();
+  await expect(page.getByText('3 wins saved')).toBeVisible();
   await page.evaluate(() => navigator.serviceWorker.ready);
   await page.reload();
   await context.setOffline(true);
   await page.reload();
   await expect(page.getByLabel('Demo mode')).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Choose today’s trail' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Choose an activity' })).toBeVisible();
   await context.setOffline(false);
   await page.getByRole('button', { name: 'Start for real' }).click();
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole('heading', { name: 'Start offline learning activities' })).toBeVisible();
+  await page.goto('/demo');
+  await expect(page.getByText('2 wins saved')).toBeVisible();
 });
 
 test('@claim:local-only demo activity use does not send data off this origin', async ({ page }) => {
@@ -141,7 +184,7 @@ test('@claim:json-export exports and imports complete data but rejects impossibl
 test('@claim:erase-progress erases real activity progress and returns to setup', async ({ page }) => {
   await page.goto('/demo');
   await page.getByRole('button', { name: 'Start for real' }).click();
-  await page.getByRole('button', { name: /Ages\s+7–8/ }).click();
+  await page.getByRole('button', { name: /Start activities for ages\s+7–8/ }).click();
   await page.getByRole('button', { name: 'Start Pattern Quarry' }).click();
   await page.locator('[data-action="answer-option"][data-value="●"]').click();
   await page.getByRole('button', { name: 'Station board' }).click();
@@ -177,26 +220,28 @@ test('@claim:input-paths supports keyboard and touch-style drawing controls', as
   await expect(page.getByRole('heading', { name: /points saved/ })).toBeVisible();
 });
 
-test('@claim:update-notice applies a waiting service worker update', async ({ page }) => {
+test('@claim:update-notice applies a real waiting service worker update and reloads under the new controller', async ({ page }) => {
   await page.goto('/demo');
   await page.evaluate(() => navigator.serviceWorker.ready);
-  await page.evaluate(() => {
-    const sent: unknown[] = [];
-    Object.defineProperty(window, '__updateMessages', { value: sent });
-    Object.defineProperty(navigator.serviceWorker, 'getRegistration', { configurable: true, value: async () => ({ waiting: { postMessage: (message: unknown) => sent.push(message) } }) });
-    window.dispatchEvent(new Event('station:update-ready'));
-  });
+  await page.reload();
+  await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+  await page.evaluate(() => navigator.serviceWorker.register('/sw-test-vnext.js'));
+  await expect.poll(() => page.evaluate(() => navigator.serviceWorker.getRegistration().then((registration) => Boolean(registration?.waiting)))).toBe(true);
+  await page.evaluate(() => window.dispatchEvent(new Event('station:update-ready')));
+  const changed = page.waitForEvent('framenavigated');
   await page.getByRole('button', { name: 'Update now' }).click();
-  await expect.poll(() => page.evaluate(() => (window as unknown as { __updateMessages: unknown[] }).__updateMessages)).toEqual([{ type: 'SKIP_WAITING' }]);
+  await changed;
+  await expect.poll(() => page.evaluate(async () => (await caches.match('/update-marker'))?.text())).toBe('vnext');
+  await expect.poll(() => page.evaluate(() => navigator.serviceWorker.controller?.scriptURL.endsWith('/sw-test-vnext.js'))).toBe(true);
 });
 
-test('@claim:paid-bundle cached license provides five rounds and detailed printouts', async ({ page }) => {
-  await page.goto('/demo');
-  await page.evaluate(() => {
+test('@claim:paid-bundle verified license provides five rounds and detailed printouts', async ({ page }) => {
+  await page.addInitScript(() => {
     localStorage.setItem('sb_license:linux-learning-station', 'test-license');
-    localStorage.setItem('sb_license_verdict:linux-learning-station', JSON.stringify({ valid: true, checkedAt: Date.now() }));
   });
-  await page.reload();
+  await page.route('https://api.sociobot.in/api/v1/products/linux-learning-station/verify?license=test-license', async (route) => route.fulfill({ status: 200, contentType: 'application/json', body: '{"valid":true}' }));
+  await page.goto('/demo');
+  await expect.poll(() => page.getByRole('button', { name: 'Start Pattern Quarry' }).count()).toBe(1);
   await page.getByRole('button', { name: 'Start Pattern Quarry' }).click();
   for (const answer of ['●', '▲', '●', '●', '▲']) {
     await page.locator(`[data-action="answer-option"][data-value="${answer}"]`).click();
@@ -207,6 +252,29 @@ test('@claim:paid-bundle cached license provides five rounds and detailed printo
   await page.getByRole('button', { name: 'Adult tools', exact: true }).click();
   await page.emulateMedia({ media: 'print' });
   await expect(page.locator('.print-sheet').getByRole('heading', { name: 'Recent practice' })).toBeVisible();
+});
+
+test('@claim:age-ranges opens distinct guided content for each age range', async ({ page }) => {
+  const fixtures: Array<[string, string]> = [['5–6', '● ● ● plus ● ● is…'], ['7–8', '14 − 6 = ?'], ['9–10', '3/4 of 20 is…']];
+  for (const [age, question] of fixtures) {
+    await page.goto('/');
+    await page.getByRole('button', { name: new RegExp(`Start activities for ages\\s+${age.replace('–', '.')}`) }).click();
+    await page.getByRole('button', { name: 'Start Number Stones' }).click();
+    await expect(page.getByText(question)).toBeVisible();
+    await page.getByRole('button', { name: 'Station board' }).click();
+    await page.getByRole('button', { name: 'Adult tools', exact: true }).click();
+    await page.getByRole('button', { name: 'Erase progress on this computer' }).click();
+    await page.getByRole('button', { name: 'Erase progress', exact: true }).click();
+  }
+});
+
+test('@claim:sales-paused exposes no checkout or purchase action', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByText('New licenses are not for sale now.')).toBeVisible();
+  await page.goto('/demo');
+  await page.getByRole('button', { name: 'Adult tools', exact: true }).click();
+  await expect(page.getByText('New licenses are not for sale now.')).toBeVisible();
+  await expect(page.locator('a[href*="checkout"], button:has-text("Buy"), button:has-text("Purchase")')).toHaveCount(0);
 });
 
 test('@claim:daily-license-check verifies a stored license no more than once per day', async ({ page }) => {

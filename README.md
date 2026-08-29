@@ -1,25 +1,27 @@
 # Linux Learning Station
 
-Linux Learning Station is an installable collection of six offline learning activities for children aged 5–10. It is for a parent or teacher setting up an older shared Linux computer.
+Start six offline learning activities for children aged 5–10 on a shared Linux computer.
+
+For parents and teachers who need a private, account-free activity station.
 
 Live product: <https://linux-learning-station.sociobot.in>
 
-## What is included
+## What it includes
 
 - Pattern Quarry, Key Trail, Logic Bridges, Word Workshop, Number Stones, and Moss Sketchbook
-- Three age-progressive levels: 5–6, 7–8, and 9–10
-- Local IndexedDB progress, printable anonymous progress codes, and JSON export/import
-- A hand-written service worker, install manifest, offline navigation fallback, and update notice
+- Age ranges: 5–6, 7–8, and 9–10
+- Progress stays in this browser. Adults can print a code or move progress with an export file.
+- Open saved pages offline after the first visit. Apply updates from an in-app notice.
 - Keyboard, pointer, and touch paths, including keyboard-created drawing shapes
-- Adult-only setup, install, reset, legal, and license-restore controls
-- Six complete core activities for free; a valid ₹499 one-time workshop license adds five-round sessions and detailed week printouts
-- A one-click `/demo` station with isolated sample progress, Reset demo, and Start for real controls
+- Setup, install, reset, legal, and license controls grouped under Adult tools
+- Six free core activities. A valid ₹499 one-time workshop license adds five-round sessions and detailed week printouts.
+- A one-click `/demo` station with sample progress, Reset demo, and Start for real controls
 
-Core activity use has no analytics, advertising, chat, child account, cloud profile, or third-party runtime script. New bundle sales are paused because the factory’s hosted checkout is not registered. Existing licenses still verify through Sociobot.
+Core activities have no analytics, ads, chat, child account, cloud profile, or code loaded from other sites. New licenses are not for sale now. Existing licenses can be restored in Adult tools.
 
 ## Try the demo
 
-Open `/demo`, or select **Try it with sample data** on the first screen. It opens an ages 7–8 sample station in a separate IndexedDB database. See [.factory/demo.md](.factory/demo.md) for the sample, reset behavior, and storage namespace.
+Open `/?demo=1`, `/demo`, or select **Try it with sample data** on the first screen. It opens ages 7–8 sample progress without reading or changing real progress. See [.factory/demo.md](.factory/demo.md) for the sample data, reset behavior, and separate demo storage.
 
 ## Run locally
 
@@ -46,8 +48,6 @@ Playwright is pinned to 1.58.2. In the factory worker image its Chromium binary 
 ## Deploy
 
 This is a static Vite application. Run `npm ci && npm run build` and publish the `dist/` directory as the site root. `staticwebapp.config.json` is emitted with the build and supplies activity/demo rewrites, a designed 404 response, security headers, and immutable asset caching.
-
-The factory must register the paid product and return URL before re-enabling new sales. The app contains no payment-provider credentials or hard-coded provider product ID.
 
 ## Project records
 

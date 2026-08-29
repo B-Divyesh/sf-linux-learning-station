@@ -30,8 +30,8 @@ async function getValue<T>(key: string): Promise<T | undefined> {
   const db = await openDb();
   return new Promise((resolve, reject) => {
     const request = db.transaction(STORE).objectStore(STORE).get(key);
-    request.onsuccess = () => resolve(request.result as T | undefined);
-    request.onerror = () => reject(request.error);
+    request.onsuccess = () => { const value = request.result as T | undefined; db.close(); resolve(value); };
+    request.onerror = () => { db.close(); reject(request.error); };
   });
 }
 
@@ -39,8 +39,8 @@ async function setValue<T>(key: string, value: T): Promise<void> {
   const db = await openDb();
   return new Promise((resolve, reject) => {
     const request = db.transaction(STORE, 'readwrite').objectStore(STORE).put(value, key);
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error);
+    request.onsuccess = () => { db.close(); resolve(); };
+    request.onerror = () => { db.close(); reject(request.error); };
   });
 }
 
@@ -72,6 +72,18 @@ export async function replaceStation(data: StationData): Promise<void> {
 export async function clearStation(): Promise<void> {
   const next = isDemoMode() ? demoStation() : { settings: DEFAULTS, attempts: [] as Attempt[] };
   await Promise.all([setValue('settings', next.settings), setValue('attempts', next.attempts)]);
+}
+
+/** Remove changed sample progress before a visitor returns to real mode. */
+export async function discardDemoStation(): Promise<void> {
+  // Re-seed first: browser implementations can delay deleteDatabase while a
+  // just-finished IndexedDB transaction releases its connection. No changed
+  // demo result can survive that delay.
+  await clearStation();
+  const request = indexedDB.deleteDatabase(`${DB_NAME}-demo`);
+  // A blocked delete is harmless here: the just-written seed contains no
+  // visitor changes, and a later close lets the browser complete deletion.
+  request.onerror = () => undefined;
 }
 
 export function validateImport(value: unknown): StationData {
