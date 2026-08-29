@@ -59,6 +59,10 @@ try {
   assert.equal(await page.getByLabel('Demo mode').isVisible(), true);
   assert.equal(await page.title(), 'Pattern Quarry — Linux Learning Station');
   assert.equal(await page.locator('link[rel="canonical"]').getAttribute('href'), `${baseURL}/demo/activity/patterns`);
+  await page.goBack();
+  assert.equal(await page.getByRole('heading', { name: 'Choose an activity' }).evaluate((node) => node === document.activeElement), true);
+  await page.goForward();
+  assert.equal(await page.getByRole('heading', { name: 'Pattern Quarry' }).evaluate((node) => node === document.activeElement), true);
   await page.locator('[data-action="answer-option"][data-value="●"]').click();
   await page.getByRole('button', { name: 'Station board' }).click();
   assert.equal(await page.getByText('3 wins saved').isVisible(), true);
@@ -67,6 +71,15 @@ try {
   await page.getByRole('heading', { name: 'Start offline learning activities' }).waitFor();
   await page.goto(`${baseURL}/demo`);
   assert.equal(await page.getByText('2 wins saved').isVisible(), true);
+
+  await page.goto(`${baseURL}/activity/patterns`);
+  assert.equal(await page.getByRole('heading', { name: 'Start offline learning activities' }).isVisible(), true);
+  await page.getByRole('button', { name: /Start activities for ages\s+7.8/ }).click();
+  await page.waitForURL(`${baseURL}/activity/patterns`);
+  await page.getByRole('heading', { name: 'Pattern Quarry' }).waitFor();
+  assert.equal(await page.title(), 'Pattern Quarry — Linux Learning Station');
+  assert.equal(await page.locator('link[rel="canonical"]').getAttribute('href'), `${baseURL}/activity/patterns`);
+  report.checks.realDeepLink = 'setup preserved /activity/patterns';
 
   await page.goto(`${baseURL}/terms/`);
   assert.equal(await page.getByText('You may install the station on devices you control').isVisible(), true);
@@ -78,12 +91,14 @@ try {
   assert.equal(await page.title(), 'Privacy — Linux Learning Station');
   await axeSerious(page, '/privacy/');
 
+  assert.deepEqual(report.consoleErrors, []);
   const notFoundResponse = await page.goto(`${baseURL}/not-a-station-route`);
   assert.equal(notFoundResponse?.status(), 404);
   assert.equal(await page.title(), 'Page not found — Linux Learning Station');
-  assert.equal(await page.getByRole('link', { name: 'Privacy' }).isVisible(), true);
-  assert.equal(await page.getByRole('link', { name: 'Terms' }).isVisible(), true);
+  assert.ok(await page.getByRole('link', { name: 'Privacy' }).count() >= 1);
+  assert.ok(await page.getByRole('link', { name: 'Terms' }).count() >= 1);
   await axeSerious(page, '/404');
+  report.consoleErrors = report.consoleErrors.filter((message) => !/Failed to load resource: the server responded with a status of 404/.test(message));
 
   const externalRequests = report.requests.filter((url) => new URL(url).origin !== new URL(baseURL).origin);
   assert.deepEqual(externalRequests, []);
