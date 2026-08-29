@@ -4,6 +4,7 @@
 - Base: `59bf91f83ba65f6149830b5f5ded547b24066066`
 - Repair commit: `fcce7e9b77b07ed999910562a8f797c1329488d2`
 - Product: <https://linux-learning-station.sociobot.in>
+- Deployment: Azure Static Web Apps production `70a32c8d-5506-4c21-843c-01505d3ed86c`
 
 ## Delivered
 
@@ -20,6 +21,7 @@ Claims are in `.factory/claims.json` and have observable Playwright coverage. Th
 - Every exact claim command in `.factory/claims.json` was run independently after the final build and passed. These include offline completion after reload, all six activity completions, demo exit/reset, real update activation/controller/cache marker, valid license verification, and local-only request capture.
 - Screenshots: `.factory/polish-1-mobile.png` (390 px first screen) and `.factory/polish-1-demo.png` (isolated sample board).
 - The supplied `verify-url.sh` was not present in this repository or worker image. Its title/lang/main/alt/console checks are covered by the Playwright accessibility sweep; no console errors were observed in its browser flows.
+- Cold production check after deployment passed: the live root has the correct title/h1/facts/main, `/?demo=1` shows the isolated banner and six activities, deep `/activity/patterns` reaches Pattern Quarry after setup with matching canonical/OG/title, Privacy has correct metadata, and an unknown URL returns the styled 404 with status 404 and legal links.
 
 ## Run and deploy
 
