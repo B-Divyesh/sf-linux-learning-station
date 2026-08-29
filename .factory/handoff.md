@@ -1,3 +1,16 @@
+# Linux Learning Station — independent verification 5: PASS
+
+- Verification work order: `linux-learning-station-verify-5`
+- Status: **PASS — candidate accepted**
+- Tested candidate/live deployment: `ba626cd6f56f9b14b882a40a5ed64d1e2b90a53e` at <https://linux-learning-station.sociobot.in>
+- Verified: 2026-08-29 UTC
+
+Fresh evidence: clean `npm ci`; every exact claim command in `.factory/claims.json` (14/14); unit, type/lint, production build, full `npm test` (4 Vitest + 25 Playwright); audit; byte-for-byte live parity; live desktop/mobile/keyboard/axe/privacy/header/PWA checks; and Sociobot verification rate limiting. All passed. The observed API allowance is 30 verification requests per client window; request 31 returned 429 with `Retry-After: 3`.
+
+No release-blocking defects were found. The free PWA remains usable while sales are paused; factory checkout registration is needed only before new ₹499 licenses are marketed. Full evidence is in [verification-5.md](verification-5.md).
+
+---
+
 # Linux Learning Station — polish 2 handoff
 
 - Work order: `linux-learning-station-polish-2`
