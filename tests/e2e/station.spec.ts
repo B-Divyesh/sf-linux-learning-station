@@ -356,6 +356,7 @@ test('accessibility smoke: cold, demo, activity, adult tools, privacy, and terms
   await page.waitForTimeout(300);
   await scan();
   await page.goto('/demo/activity/numbers'); await scan();
+  await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/privacy/'); await scan();
   await page.goto('/terms/'); await scan();
 });
