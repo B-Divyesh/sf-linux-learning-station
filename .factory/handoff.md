@@ -2,7 +2,7 @@
 
 - Work order: `linux-learning-station-polish-1`
 - Base: `59bf91f83ba65f6149830b5f5ded547b24066066`
-- Repair commit: recorded after final commit
+- Repair commit: `fcce7e9b77b07ed999910562a8f797c1329488d2`
 - Product: <https://linux-learning-station.sociobot.in>
 
 ## Delivered
