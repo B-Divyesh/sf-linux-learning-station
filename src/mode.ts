@@ -1,5 +1,7 @@
 export function isDemoMode(): boolean {
-  return window.location.pathname === '/demo' || new URLSearchParams(window.location.search).get('demo') === '1';
+  return window.location.pathname === '/demo'
+    || window.location.pathname.startsWith('/demo/')
+    || new URLSearchParams(window.location.search).get('demo') === '1';
 }
 
 export function appPath(path = '/'): string {

@@ -53,5 +53,3 @@ export async function checkLicense(): Promise<LicenseState> {
     return { unlocked: cached?.valid ?? false, checking: false, notice: cached ? 'Offline — using the last license check.' : 'Connect once to verify this license.' };
   }
 }
-
-export const checkoutUrl = `${VERIFY_BASE}/${SLUG}/checkout`;

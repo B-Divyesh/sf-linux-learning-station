@@ -7,9 +7,9 @@ async function setup(page: import('@playwright/test').Page, age = '7–8') {
   await expect(page.getByRole('heading', { name: 'Choose today’s trail' })).toBeVisible();
 }
 
-test('@claim:six-free-activities fresh setup leads to all six offline activities at mobile width', async ({ page }) => {
+test('@claim:six-free-activities demo exposes all six free activities at mobile width', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await setup(page);
+  await page.goto('/demo');
   await expect(page.locator('.activity-slab')).toHaveCount(6);
   await expect(page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).resolves.toBe(true);
   // axe's package permits newer Playwright peers; runtime APIs used here are stable.
@@ -50,12 +50,12 @@ test('adult tools expose local data and legal controls', async ({ page }) => {
   await page.getByRole('button', { name: 'Adult tools', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Station controls' })).toBeVisible();
   await expect(page.getByLabel('Adult tools', { exact: true }).getByText(/MOSS-78-/)).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Buy the offline bundle' })).toHaveAttribute('href', /api\.sociobot\.in\/api\/v1\/products\/linux-learning-station\/checkout/);
+  await expect(page.getByText('New sales are paused while hosted checkout is unavailable.')).toBeVisible();
   await expect(page.getByLabel('Legal').getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', '/privacy/');
 });
 
-test('@claim:offline-reload installed station reloads while fully offline', async ({ page, context }) => {
-  await setup(page);
+test('@claim:offline-reload demo station reloads while fully offline', async ({ page, context }) => {
+  await page.goto('/demo');
   await page.evaluate(() => navigator.serviceWorker.ready);
   await page.reload();
   await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
@@ -77,13 +77,19 @@ test('privacy and terms are real standalone pages', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1, name: 'Terms' })).toBeVisible();
 });
 
-test('@claim:demo-sandbox opens a seeded station without using the real setup', async ({ page, context }) => {
+test('@claim:demo-sandbox keeps activity progress out of the real database', async ({ page, context }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Try it with sample data' }).click();
   await expect(page).toHaveURL(/\/demo$/);
   await expect(page.getByLabel('Demo mode')).toContainText('Demo — sample data, nothing is saved');
   await expect(page.getByRole('heading', { name: 'Choose today’s trail' })).toBeVisible();
   await expect(page.getByText('2 wins saved')).toBeVisible();
+  await page.getByRole('button', { name: 'Start Pattern Quarry' }).click();
+  await expect(page).toHaveURL(/\/demo\/activity\/patterns$/);
+  await expect(page.getByLabel('Demo mode')).toBeVisible();
+  await page.locator('[data-action="answer-option"][data-value="●"]').click();
+  await expect(page.getByRole('heading', { name: 'Good noticing!' })).toBeVisible();
+  await page.getByRole('button', { name: 'Station board' }).click();
   await page.getByRole('button', { name: 'Reset demo' }).click();
   await expect(page.getByText('2 wins saved')).toBeVisible();
   await page.evaluate(() => navigator.serviceWorker.ready);
@@ -98,17 +104,19 @@ test('@claim:demo-sandbox opens a seeded station without using the real setup', 
   await expect(page.getByRole('heading', { name: 'Start offline learning activities' })).toBeVisible();
 });
 
-test('@claim:local-only core activity use does not send data off this origin', async ({ page }) => {
+test('@claim:local-only demo activity use does not send data off this origin', async ({ page }) => {
   const requests: string[] = [];
   page.on('request', (request) => requests.push(request.url()));
-  await setup(page);
+  await page.goto('/demo');
   await page.getByRole('button', { name: 'Start Pattern Quarry' }).click();
   await page.locator('[data-action="answer-option"][data-value="●"]').click();
   expect(requests.every((url) => new URL(url).origin === 'http://127.0.0.1:4173')).toBe(true);
+  expect(await page.locator('iframe, [class*="advert"], [id*="chat"]').count()).toBe(0);
+  expect(await page.locator('script[src]').evaluateAll((scripts) => scripts.every((script) => new URL((script as HTMLScriptElement).src).origin === location.origin))).toBe(true);
 });
 
-test('@claim:json-export exports complete local progress and rejects partial attempts', async ({ page }) => {
-  await setup(page);
+test('@claim:json-export exports and imports complete data but rejects impossible scores', async ({ page }) => {
+  await page.goto('/demo');
   await page.getByRole('button', { name: 'Adult tools', exact: true }).click();
   const downloadPromise = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export data' }).click();
@@ -119,8 +127,142 @@ test('@claim:json-export exports complete local progress and rejects partial att
   for await (const chunk of stream ?? []) json += String(chunk);
   const contents = JSON.parse(json);
   expect(contents.settings.ageBand).toBe('7–8');
+  const path = await download.path();
+  expect(path).toBeTruthy();
+  await page.locator('#import-file').setInputFiles(path!);
+  await page.getByRole('button', { name: 'Adult tools', exact: true }).click();
+  await expect(page.getByRole('status').getByText('Progress imported successfully.')).toBeVisible();
   await page.locator('#import-file').setInputFiles('tests/fixtures/broken-import.json');
   await expect(page.getByRole('status').getByText('That file is not a valid Learning Station export.')).toBeVisible();
+  await page.locator('#import-file').setInputFiles('tests/fixtures/negative-points-import.json');
+  await expect(page.getByRole('status').getByText('That file is not a valid Learning Station export.')).toBeVisible();
+});
+
+test('@claim:erase-progress erases real activity progress and returns to setup', async ({ page }) => {
+  await page.goto('/demo');
+  await page.getByRole('button', { name: 'Start for real' }).click();
+  await page.getByRole('button', { name: /Ages\s+7–8/ }).click();
+  await page.getByRole('button', { name: 'Start Pattern Quarry' }).click();
+  await page.locator('[data-action="answer-option"][data-value="●"]').click();
+  await page.getByRole('button', { name: 'Station board' }).click();
+  await page.getByRole('button', { name: 'Adult tools', exact: true }).click();
+  await page.getByRole('button', { name: 'Erase progress on this computer' }).click();
+  await page.getByRole('button', { name: 'Erase progress', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Start offline learning activities' })).toBeVisible();
+});
+
+test('@claim:printable-code creates an anonymous progress code and printable sheet', async ({ page }) => {
+  await page.goto('/demo');
+  await page.getByRole('button', { name: 'Adult tools', exact: true }).click();
+  const code = await page.locator('.code-label strong').textContent();
+  expect(code).toMatch(/^MOSS-78-[A-Z0-9]{4}$/);
+  await page.emulateMedia({ media: 'print' });
+  await expect(page.locator('.print-sheet')).toBeVisible();
+  await expect(page.locator('.print-code')).toHaveText(code!);
+  await expect(page.locator('.print-sheet')).not.toContainText(/name|email/i);
+});
+
+test('@claim:input-paths supports keyboard and touch-style drawing controls', async ({ page }) => {
+  await page.goto('/demo/activity/drawing');
+  const addDot = page.getByRole('button', { name: 'Add dot' });
+  await addDot.focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('#announcer')).toHaveText('Dot added to the drawing.');
+  const box = await page.locator('#sketch').boundingBox();
+  expect(box).toBeTruthy();
+  await page.locator('#sketch').dispatchEvent('pointerdown', { pointerId: 1, pointerType: 'touch', clientX: box!.x + 30, clientY: box!.y + 30 });
+  await page.locator('#sketch').dispatchEvent('pointermove', { pointerId: 1, pointerType: 'touch', clientX: box!.x + 60, clientY: box!.y + 60 });
+  await page.locator('#sketch').dispatchEvent('pointerup', { pointerId: 1, pointerType: 'touch', clientX: box!.x + 60, clientY: box!.y + 60 });
+  await page.getByRole('button', { name: 'Save this drawing session' }).click();
+  await expect(page.getByRole('heading', { name: /points saved/ })).toBeVisible();
+});
+
+test('@claim:update-notice applies a waiting service worker update', async ({ page }) => {
+  await page.goto('/demo');
+  await page.evaluate(() => navigator.serviceWorker.ready);
+  await page.evaluate(() => {
+    const sent: unknown[] = [];
+    Object.defineProperty(window, '__updateMessages', { value: sent });
+    Object.defineProperty(navigator.serviceWorker, 'getRegistration', { configurable: true, value: async () => ({ waiting: { postMessage: (message: unknown) => sent.push(message) } }) });
+    window.dispatchEvent(new Event('station:update-ready'));
+  });
+  await page.getByRole('button', { name: 'Update now' }).click();
+  await expect.poll(() => page.evaluate(() => (window as unknown as { __updateMessages: unknown[] }).__updateMessages)).toEqual([{ type: 'SKIP_WAITING' }]);
+});
+
+test('@claim:paid-bundle cached license provides five rounds and detailed printouts', async ({ page }) => {
+  await page.goto('/demo');
+  await page.evaluate(() => {
+    localStorage.setItem('sb_license:linux-learning-station', 'test-license');
+    localStorage.setItem('sb_license_verdict:linux-learning-station', JSON.stringify({ valid: true, checkedAt: Date.now() }));
+  });
+  await page.reload();
+  await page.getByRole('button', { name: 'Start Pattern Quarry' }).click();
+  for (const answer of ['●', '▲', '●', '●', '▲']) {
+    await page.locator(`[data-action="answer-option"][data-value="${answer}"]`).click();
+    await page.getByRole('button', { name: /Next round|Finish session/ }).click();
+  }
+  await expect(page.getByRole('heading', { name: '50 points saved' })).toBeVisible();
+  await page.getByRole('button', { name: 'Station board' }).click();
+  await page.getByRole('button', { name: 'Adult tools', exact: true }).click();
+  await page.emulateMedia({ media: 'print' });
+  await expect(page.locator('.print-sheet').getByRole('heading', { name: 'Recent practice' })).toBeVisible();
+});
+
+test('@claim:daily-license-check verifies a stored license no more than once per day', async ({ page }) => {
+  let checks = 0;
+  await page.route('https://api.sociobot.in/api/v1/products/linux-learning-station/verify?license=test-license', async (route) => {
+    checks += 1;
+    await route.fulfill({ status: 200, contentType: 'application/json', body: '{"valid":true}' });
+  });
+  await page.goto('/demo');
+  await page.evaluate(() => localStorage.setItem('sb_license:linux-learning-station', 'test-license'));
+  await page.reload();
+  await expect.poll(() => checks).toBe(1);
+  await page.reload();
+  await page.waitForTimeout(300);
+  expect(checks).toBe(1);
+});
+
+test('regressions: demo route, round focus, recovery handler, and 44px mobile targets', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/demo/activity/patterns');
+  await expect(page.getByLabel('Demo mode')).toBeVisible();
+  await page.locator('[data-action="answer-option"][data-value="●"]').click();
+  await page.getByRole('button', { name: 'Next round' }).click();
+  await expect(page.locator('[data-round-focus]')).toBeFocused();
+  const targets = await page.locator('.brand, .demo-banner button, .site-footer a').evaluateAll((nodes) => nodes.map((node) => ({ text: node.textContent?.trim(), width: node.getBoundingClientRect().width, height: node.getBoundingClientRect().height })));
+  expect(targets.every(({ width, height }) => width >= 44 && height >= 44)).toBe(true);
+  expect(await page.locator('[onclick]').count()).toBe(0);
+});
+
+test('regression: blocked IndexedDB recovery reloads without inline script', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
+  await page.addInitScript(() => Object.defineProperty(window, 'indexedDB', { configurable: true, get: () => { throw new Error('blocked for test'); } }));
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'The station could not open' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Try again' })).not.toHaveAttribute('onclick');
+  await Promise.all([page.waitForEvent('domcontentloaded'), page.getByRole('button', { name: 'Try again' }).click()]);
+  await expect(page.getByRole('heading', { name: 'The station could not open' })).toBeVisible();
+  expect(errors.filter((message) => /content security policy|refused to execute/i.test(message))).toEqual([]);
+});
+
+test('accessibility smoke: cold, demo, activity, adult tools, privacy, and terms', async ({ page }) => {
+  const scan = async () => {
+    await expect(page.locator('h1')).toHaveCount(1);
+    await expect(page.locator('main')).toHaveCount(1);
+    const results = await new AxeBuilder({ page: page as never }).analyze();
+    expect(results.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
+  };
+  await page.goto('/'); await scan();
+  await page.goto('/demo'); await scan();
+  await page.getByRole('button', { name: 'Adult tools', exact: true }).click();
+  await page.waitForTimeout(300);
+  await scan();
+  await page.goto('/demo/activity/numbers'); await scan();
+  await page.goto('/privacy/'); await scan();
+  await page.goto('/terms/'); await scan();
 });
 
 test('regressions: exact typing, valid 9–10 logic, dialog cancel, titles, and focus trap', async ({ page }) => {

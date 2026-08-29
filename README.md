@@ -11,11 +11,11 @@ Live product: <https://linux-learning-station.sociobot.in>
 - Local IndexedDB progress, printable anonymous progress codes, and JSON export/import
 - A hand-written service worker, install manifest, offline navigation fallback, and update notice
 - Keyboard, pointer, and touch paths, including keyboard-created drawing shapes
-- Adult-only setup, install, reset, legal, and purchase controls
-- Six complete core activities for free; a ₹499 one-time workshop license adds five-round sessions and detailed week printouts
+- Adult-only setup, install, reset, legal, and license-restore controls
+- Six complete core activities for free; a valid ₹499 one-time workshop license adds five-round sessions and detailed week printouts
 - A one-click `/demo` station with isolated sample progress, Reset demo, and Start for real controls
 
-Core activity use has no analytics, advertising, chat, child account, cloud profile, or third-party runtime script. The optional purchase uses Sociobot’s hosted billing API; the app never embeds a payment provider.
+Core activity use has no analytics, advertising, chat, child account, cloud profile, or third-party runtime script. New bundle sales are paused because the factory’s hosted checkout is not registered. Existing licenses still verify through Sociobot.
 
 ## Try the demo
 
@@ -47,7 +47,7 @@ Playwright is pinned to 1.58.2. In the factory worker image its Chromium binary 
 
 This is a static Vite application. Run `npm ci && npm run build` and publish the `dist/` directory as the site root. `staticwebapp.config.json` is emitted with the build and supplies activity/demo rewrites, a designed 404 response, security headers, and immutable asset caching.
 
-The factory registers the paid product and return URL separately. The app uses the slug-based endpoint and contains no hard-coded provider product ID.
+The factory must register the paid product and return URL before re-enabling new sales. The app contains no payment-provider credentials or hard-coded provider product ID.
 
 ## Project records
 

@@ -1,0 +1,14 @@
+{
+  "settings": { "ageBand": "7–8", "setupDone": true, "sound": false },
+  "attempts": [
+    {
+      "id": "negative-score",
+      "activity": "patterns",
+      "correct": true,
+      "points": -999,
+      "detail": "Impossible score",
+      "createdAt": "2026-08-29T00:00:00.000Z"
+    }
+  ],
+  "updatedAt": "2026-08-29T00:00:00.000Z"
+}

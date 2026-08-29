@@ -1,37 +1,13 @@
 [
-  {
-    "id": "six-free-activities",
-    "claim": "Six core learning activities are available without a purchase.",
-    "where": "Landing page, station board, README",
-    "test": "npm run test:e2e -- --grep @claim:six-free-activities",
-    "sandbox": "Fresh mobile browser context; complete setup and count the six activity slabs."
-  },
-  {
-    "id": "offline-reload",
-    "claim": "Works offline after the first visit.",
-    "where": "README and Adult tools install copy",
-    "test": "npm run test:e2e -- --grep @claim:offline-reload",
-    "sandbox": "Fresh browser context; set up, wait for service-worker control, set the context offline, then reload."
-  },
-  {
-    "id": "demo-sandbox",
-    "claim": "Sample data is isolated from the real station.",
-    "where": "First-screen demo action and demo banner",
-    "test": "npm run test:e2e -- --grep @claim:demo-sandbox",
-    "sandbox": "Fresh browser context; enter /demo, verify seeded progress, reset it, then return to an unconfigured real station."
-  },
-  {
-    "id": "local-only",
-    "claim": "Core activity progress stays on this computer and is not sent to us.",
-    "where": "Landing page, Privacy page, README",
-    "test": "npm run test:e2e -- --grep @claim:local-only",
-    "sandbox": "Record every request during setup and a completed core round; assert every request is same-origin."
-  },
-  {
-    "id": "json-export",
-    "claim": "Adults can export local progress as JSON and malformed imports are rejected.",
-    "where": "Adult tools and Privacy page",
-    "test": "npm run test:e2e -- --grep @claim:json-export",
-    "sandbox": "Fresh browser context; export progress, inspect its settings, then attempt to import a partial attempt."
-  }
+  {"id":"six-free-activities","claim":"Six core learning activities are available without a purchase.","where":"Landing page, station board, README, Terms","test":"npm run test:e2e -- --grep @claim:six-free-activities","sandbox":"Fresh mobile context at /demo; count six usable activity slabs and check accessibility and overflow."},
+  {"id":"offline-reload","claim":"The station works offline after installation.","where":"Landing page, Adult tools, Privacy, README","test":"npm run test:e2e -- --grep @claim:offline-reload","sandbox":"Fresh context at /demo; wait for service-worker control, disconnect, reload, and assert the station remains usable."},
+  {"id":"demo-sandbox","claim":"Sample activity data stays isolated from the real station.","where":"First-screen demo action, demo banner, README","test":"npm run test:e2e -- --grep @claim:demo-sandbox","sandbox":"Complete a round on /demo/activity/*, reset, reload offline, then return to an untouched real station."},
+  {"id":"local-only","claim":"Core activity progress stays on this computer; there are no analytics, ads, chat, cloud profiles, or third-party runtime scripts.","where":"Landing page, Privacy, README","test":"npm run test:e2e -- --grep @claim:local-only","sandbox":"Record every request while completing a core round from /demo, assert every request and runtime script is same-origin, and assert no chat, ad, or embedded frame exists."},
+  {"id":"json-export","claim":"Adults can export and import valid JSON progress; malformed or impossible scores are rejected.","where":"Landing page, Adult tools, Privacy, README","test":"npm run test:e2e -- --grep @claim:json-export","sandbox":"At /demo export and re-import a valid file, then assert partial and negative-score files are rejected."},
+  {"id":"erase-progress","claim":"Adults can erase all real local learning progress.","where":"Landing page, Adult tools, Privacy","test":"npm run test:e2e -- --grep @claim:erase-progress","sandbox":"Enter through /demo, start a clean real station, save a round, confirm erase, and assert setup returns."},
+  {"id":"printable-code","claim":"Adults can print an anonymous local progress code.","where":"Adult tools, README","test":"npm run test:e2e -- --grep @claim:printable-code","sandbox":"At /demo assert the code format matches the print sheet and that the sheet has no name or email field."},
+  {"id":"input-paths","claim":"Drawing supports keyboard controls and pointer or touch input.","where":"Drawing activity, README","test":"npm run test:e2e -- --grep @claim:input-paths","sandbox":"Open /demo/activity/drawing; add a shape by keyboard, dispatch a touch-style pointer stroke, and save."},
+  {"id":"update-notice","claim":"An available app update can be applied from the in-app notice.","where":"Update notice, README","test":"npm run test:e2e -- --grep @claim:update-notice","sandbox":"At /demo provide a waiting service worker, select Update now, and assert it receives SKIP_WAITING."},
+  {"id":"paid-bundle","claim":"A valid ₹499 one-time license adds five-round sessions and detailed printouts.","where":"Landing page, Adult tools, Terms, README","test":"npm run test:e2e -- --grep @claim:paid-bundle","sandbox":"At /demo install a fresh valid cached license, finish five rounds, and assert recent practice appears in print."},
+  {"id":"daily-license-check","claim":"Stored licenses are verified with Sociobot at most once per day.","where":"Privacy","test":"npm run test:e2e -- --grep @claim:daily-license-check","sandbox":"At /demo intercept Sociobot verification, load twice with a stored token, and assert exactly one request."}
 ]

@@ -86,7 +86,8 @@ export function validateImport(value: unknown): StationData {
     const attempt = item as Partial<Attempt>;
     return typeof attempt.id === 'string' && attempt.id.length > 0
       && typeof attempt.activity === 'string' && activityIds.has(attempt.activity)
-      && typeof attempt.correct === 'boolean' && typeof attempt.points === 'number' && Number.isFinite(attempt.points)
+      && typeof attempt.correct === 'boolean' && typeof attempt.points === 'number'
+      && attempt.points === (attempt.correct ? 10 : 2)
       && typeof attempt.detail === 'string' && typeof attempt.createdAt === 'string' && !Number.isNaN(Date.parse(attempt.createdAt));
   };
   if (!data.attempts.every(validAttempt) || (data.updatedAt !== undefined && (typeof data.updatedAt !== 'string' || Number.isNaN(Date.parse(data.updatedAt))))) {

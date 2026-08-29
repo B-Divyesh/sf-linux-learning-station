@@ -26,5 +26,7 @@ describe('local progress helpers', () => {
   it('rejects malformed import files', () => {
     expect(() => validateImport({ settings: { ageBand: 'adult' }, attempts: [] })).toThrow(/valid Learning Station export/);
     expect(() => validateImport({ settings: { ageBand: '7–8', setupDone: true, sound: false }, attempts: [{ id: 'partial', activity: 'patterns', createdAt: '2026-08-29T00:00:00.000Z' }] })).toThrow(/valid Learning Station export/);
+    expect(() => validateImport({ settings: { ageBand: '7–8', setupDone: true, sound: false }, attempts: [{ id: 'negative', activity: 'patterns', correct: true, points: -999, detail: 'Impossible score', createdAt: '2026-08-29T00:00:00.000Z' }] })).toThrow(/valid Learning Station export/);
+    expect(() => validateImport({ settings: { ageBand: '7–8', setupDone: true, sound: false }, attempts: [{ id: 'mismatch', activity: 'patterns', correct: false, points: 10, detail: 'Wrong score', createdAt: '2026-08-29T00:00:00.000Z' }] })).toThrow(/valid Learning Station export/);
   });
 });
