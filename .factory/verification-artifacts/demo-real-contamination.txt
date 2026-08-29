@@ -1,0 +1,6 @@
+REAL_BEFORE {"age":"AGES 5–6 · SAVED ON THIS COMPUTER","fresh":1}
+DEMO_BEFORE {"age":"AGES 7–8 · SAVED ON THIS COMPUTER","wins":"2 wins saved","banner":1}
+AFTER_FIRST_DEMO_ACTIVITY {"url":"https://linux-learning-station.sociobot.in/demo/activity/numbers","heading":"Choose today’s trail","banner":0}
+SECOND_ACTIVITY_ROUTE {"url":"https://linux-learning-station.sociobot.in/activity/patterns","heading":"Pattern Quarry"}
+REAL_AFTER_DEMO {"age":"AGES 5–6 · SAVED ON THIS COMPUTER","returnNote":"✓\n\nWelcome back. Last win: Pattern Quarry.\n\n1 wins saved"}
+DATABASES [{"name":"linux-learning-station","version":1},{"name":"linux-learning-station-demo","version":1}]

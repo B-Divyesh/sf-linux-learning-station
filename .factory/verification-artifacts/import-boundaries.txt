@@ -1,0 +1,2 @@
+NEGATIVE_IMPORT {"feedback":"Progress imported successfully.","panel":1,"today":"TODAY\n-999\nPOINTS","returnNote":"✓\n\nWelcome back. Last win: Number Stones.\n\n1 wins saved"}
+IMPORT_501_EXPORTED_COUNT 500

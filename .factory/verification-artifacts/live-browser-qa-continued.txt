@@ -1,0 +1,89 @@
+INVALID_IMPORT_FEEDBACK That file is not a valid Learning Station export.
+INVALID_IMPORT_FOCUS {
+  tag: 'BODY',
+  cls: 'panel-open',
+  text: 'Skip to activities\n' +
+    '    \n' +
+    '    \n' +
+    '      \n' +
+    '        \n' +
+    '        Linux Learning Station\n' +
+    '      \n' +
+    '      DemoPrivacy\n' +
+    '      \n' +
+    '        Ready offline\n' +
+    '        Adult tools\n' +
+    '      \n' +
+    '    \n' +
+    '    \n' +
+    '    \n' +
+    '      \n' +
+    '        Ages 7–8 · saved on this computerChoose today’s trailShort activities. Clear endings. Pick any slab to begin.\n' +
+    '        Today0points\n' +
+    '      \n' +
+    '      ↳A fresh station. Pick any activity. The first win will appear here — no account needed.\n' +
+    '      Learning activities\n' +
+    '        \n' +
+    '          Try next\n' +
+    '          01\n' +
+    '          ■ ● ▲\n' +
+    '          Notice & predictPattern QuarryFind what belongs next in a line of shapes.\n' +
+    '          Start →\n' +
+    '        \n' +
+    '          \n' +
+    '          02\n' +
+    '          A S D\n' +
+    '          Type with careKey TrailFollow short trails from single keys to full sentences.\n' +
+    '          Start →\n' +
+    '        \n' +
+    '          \n' +
+    '          03\n' +
+    '          ◇—◇\n' +
+    '          Plan a routeLogic BridgesUse each clue to choose the safe next step.\n' +
+    '          Start →\n' +
+    '        \n' +
+    '          \n' +
+    '          04\n' +
+    '          M O S S\n' +
+    '          Build a wordWord WorkshopPut mixed-up letters back into useful words.\n' +
+    '          Start →\n' +
+    '        \n' +
+    '          \n' +
+    '          05\n' +
+    '          7 + 5\n' +
+    '          See quantityNumber StonesMatch groups, sums, and number relationships.\n' +
+    '          Start →\n' +
+    '        \n' +
+    '          \n' +
+    '          06\n' +
+    '          ⌁ ✦\n' +
+    '          Make & imagineMoss SketchbookDraw freely with a small set of sturdy tools.\n' +
+    '          Start →\n' +
+    '        \n' +
+    '      \n' +
+    '      Six local activities for shared Linux computers. Privacy · Terms · Built by Param Factory · v1.1.3Open adult tools\n' +
+    '      \n' +
+    '    \n' +
+    '      For a grown-upStation controls×\n' +
+    '      That file is not a valid Learning Station export.\n' +
+    '      Practice level5–67–8 selected9–10\n' +
+    '      Progress that stays here0 wins0 days0 points todayPrintable progress code MOSS-78-A426Print progressExport dataImport data\n' +
+    '      Optional bundleMore practice, one purchase₹499 one time. Adds extended five-round practice and detailed printable week sheets. All six core activities remain free.Buy the offline bundleHave a license?Paste license tokenVerify Sociobot/Dodo is the merchant of record. Refunds are handled there.\n' +
+    '      Install & dataInstall once, then the activities and progress work without internet.Install from your browser menuErase progress on this computer\n' +
+    '      PrivacyTerms\n' +
+    '    \n' +
+    '    Erase all local progress?This removes every activity result and restores setup. Export first if you may need it.Keep progressErase progress\n' +
+    '  \n' +
+    '    \n' +
+    '    Linux Learning StationProgress field notePractice level: Ages 7–8MOSS-78-A4260 active days · 0 successful roundsActivityWinsPattern Quarry0Key Trail0Logic Bridges0Word Workshop0Number Stones0Moss Sketchbook0Printed 8/29/2026\n' +
+    '  \n' +
+    '    That file is not a valid Learning Station export.\n' +
+    '    A fresh station update is ready.Update now'
+}
+AXE adult-after-invalid 0 []
+DESKTOP_ERRORS []
+DESKTOP_EXTERNAL []
+MOBILE_COLD_OVERFLOW {"sw":390,"cw":390}
+DEMO {"url":"https://linux-learning-station.sociobot.in/demo","banner":"Demo — sample data, nothing is saved\nTry every activity safely.\nReset demoStart for real","wins":"2 wins saved","activities":6}
+AXE demo-mobile 0 []
+MOBILE_METRICS {"overflow":0,"transitions":["1e-05s"],"smallTargets":[{"text":"Skip to activities","w":184,"h":43,"tag":"A"},{"text":"Linux Learning Station","w":33,"h":33,"tag":"A"},{"text":"Reset demo","w":119,"h":36,"tag":"BUTTON"},{"text":"Start for real","w":130,"h":36,"tag":"BUTTON"},{"text":"Privacy","w":58,"h":19,"tag":"A"},{"text":"Terms","w":47,"h":19,"tag":"A"}]}

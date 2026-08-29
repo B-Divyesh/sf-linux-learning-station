@@ -1,0 +1,6 @@
+SETUP_200 {
+  overflow: 0,
+  h1: '75.2px',
+  buttons: [ { t: 'Update now', w: 0, h: 0 } ]
+}
+BOARD_200 { overflow: 0, h1: '75.2px' }

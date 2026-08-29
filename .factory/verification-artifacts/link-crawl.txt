@@ -1,0 +1,9 @@
+404 https://api.sociobot.in/api/v1/products/linux-learning-station/checkout
+200 https://linux-learning-station.sociobot.in/
+200 https://linux-learning-station.sociobot.in/#main
+200 https://linux-learning-station.sociobot.in/demo
+200 https://linux-learning-station.sociobot.in/demo#main
+200 https://linux-learning-station.sociobot.in/privacy/
+200 https://linux-learning-station.sociobot.in/terms/
+MAILTO mailto:privacy@sociobot.in
+MAILTO mailto:support@sociobot.in

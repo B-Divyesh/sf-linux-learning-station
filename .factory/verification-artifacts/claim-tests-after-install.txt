@@ -1,0 +1,55 @@
+
+===== CLAIM six-free-activities: Six core learning activities are available without a purchase. =====
+
+> linux-learning-station@1.0.0 test:e2e
+> playwright test --grep @claim:six-free-activities
+
+
+Error: Timed out waiting 60000ms from config.webServer.
+
+
+===== RESULT six-free-activities: exit 1 =====
+
+===== CLAIM offline-reload: Works offline after the first visit. =====
+
+> linux-learning-station@1.0.0 test:e2e
+> playwright test --grep @claim:offline-reload
+
+
+Error: Timed out waiting 60000ms from config.webServer.
+
+
+===== RESULT offline-reload: exit 1 =====
+
+===== CLAIM demo-sandbox: Sample data is isolated from the real station. =====
+
+> linux-learning-station@1.0.0 test:e2e
+> playwright test --grep @claim:demo-sandbox
+
+
+Error: Timed out waiting 60000ms from config.webServer.
+
+
+===== RESULT demo-sandbox: exit 1 =====
+
+===== CLAIM local-only: Core activity progress stays on this computer and is not sent to us. =====
+
+> linux-learning-station@1.0.0 test:e2e
+> playwright test --grep @claim:local-only
+
+
+Error: Timed out waiting 60000ms from config.webServer.
+
+
+===== RESULT local-only: exit 1 =====
+
+===== CLAIM json-export: Adults can export local progress as JSON and malformed imports are rejected. =====
+
+> linux-learning-station@1.0.0 test:e2e
+> playwright test --grep @claim:json-export
+
+
+Error: Timed out waiting 60000ms from config.webServer.
+
+
+===== RESULT json-export: exit 1 =====

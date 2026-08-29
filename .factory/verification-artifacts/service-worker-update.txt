@@ -1,0 +1,5 @@
+BEFORE {"controlled":true,"caches":["station-v1.1.3-shell"]}
+TOAST A fresh station update is ready.
+Update now
+AFTER {"controlled":true,"caches":["station-v1.1.4-shell"]}
+ERRORS []

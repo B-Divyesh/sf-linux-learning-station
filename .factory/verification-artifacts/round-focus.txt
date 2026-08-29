@@ -1,0 +1,25 @@
+after answer { tag: 'BUTTON', text: 'Next round' }
+after next round {
+  tag: 'BODY',
+  text: 'Skip to activities\n' +
+    '    \n' +
+    '    \n' +
+    '      \n' +
+    '        \n' +
+    '        Linux Learning Station\n' +
+    '      \n' +
+    '      DemoPrivacy\n' +
+    '      \n' +
+    '        Ready offline\n' +
+    '        \n' +
+    '      \n' +
+    '    \n' +
+    '    \n' +
+    '    ← Station boardAges 7–8\n' +
+    '    Notice & predictPattern QuarryRound 2 / 3\n' +
+    '    What comes next?▲●▲■▲●?▲■●\n' +
+    '    Core session · 3 rounds. Adult tools has an optional five-round bundle.\n' +
+    '  Six local activities for shared Linux computers. Privacy · Terms · Built by Param Factory · v1.1.3Open adult tools\n' +
+    '    Correct. Good noticing!\n' +
+    '    A fresh station update is ready.Update now'
+}

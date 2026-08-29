@@ -1,0 +1,55 @@
+
+===== CLAIM six-free-activities: Six core learning activities are available without a purchase. =====
+
+> linux-learning-station@1.0.0 test:e2e
+> playwright test --grep @claim:six-free-activities
+
+
+Running 1 test using 1 worker
+·
+  1 passed (5.2s)
+===== RESULT six-free-activities: exit 0 =====
+
+===== CLAIM offline-reload: Works offline after the first visit. =====
+
+> linux-learning-station@1.0.0 test:e2e
+> playwright test --grep @claim:offline-reload
+
+
+Running 1 test using 1 worker
+·
+  1 passed (4.4s)
+===== RESULT offline-reload: exit 0 =====
+
+===== CLAIM demo-sandbox: Sample data is isolated from the real station. =====
+
+> linux-learning-station@1.0.0 test:e2e
+> playwright test --grep @claim:demo-sandbox
+
+
+Running 1 test using 1 worker
+·
+  1 passed (4.9s)
+===== RESULT demo-sandbox: exit 0 =====
+
+===== CLAIM local-only: Core activity progress stays on this computer and is not sent to us. =====
+
+> linux-learning-station@1.0.0 test:e2e
+> playwright test --grep @claim:local-only
+
+
+Running 1 test using 1 worker
+·
+  1 passed (4.0s)
+===== RESULT local-only: exit 0 =====
+
+===== CLAIM json-export: Adults can export local progress as JSON and malformed imports are rejected. =====
+
+> linux-learning-station@1.0.0 test:e2e
+> playwright test --grep @claim:json-export
+
+
+Running 1 test using 1 worker
+·
+  1 passed (4.5s)
+===== RESULT json-export: exit 0 =====

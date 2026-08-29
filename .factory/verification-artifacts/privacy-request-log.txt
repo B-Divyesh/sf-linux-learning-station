@@ -1,0 +1,38 @@
+{
+  "origins": [
+    "https://linux-learning-station.sociobot.in"
+  ],
+  "allSameOrigin": true,
+  "requests": [
+    {
+      "method": "GET",
+      "url": "https://linux-learning-station.sociobot.in/",
+      "type": "document"
+    },
+    {
+      "method": "GET",
+      "url": "https://linux-learning-station.sociobot.in/assets/station-hero.webp",
+      "type": "image"
+    },
+    {
+      "method": "GET",
+      "url": "https://linux-learning-station.sociobot.in/assets/index-ndI9_j7x.js",
+      "type": "script"
+    },
+    {
+      "method": "GET",
+      "url": "https://linux-learning-station.sociobot.in/assets/style-CMV4mmCr.css",
+      "type": "stylesheet"
+    },
+    {
+      "method": "GET",
+      "url": "https://linux-learning-station.sociobot.in/assets/station-mark.svg",
+      "type": "image"
+    },
+    {
+      "method": "GET",
+      "url": "https://linux-learning-station.sociobot.in/assets/station-mark.svg",
+      "type": "image"
+    }
+  ]
+}
