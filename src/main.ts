@@ -15,7 +15,7 @@ let feedback = '';
 let activityState: { id: ActivityId; round: number; score: number; result?: { correct: boolean; answer: string } } | null = null;
 let routeMessage = '';
 let offlineReady = false;
-const BUILD_VERSION = 'v1.2.1';
+const BUILD_VERSION = 'v1.2.2';
 const SITE_URL = 'https://linux-learning-station.sociobot.in';
 
 const esc = (value: string) => value.replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char]!);
@@ -132,7 +132,7 @@ function homeView(): string {
           <div class="activity-number" aria-hidden="true">0${index + 1}</div>
           <div class="activity-symbol" aria-hidden="true">${item.symbol}</div>
           <p class="kicker">${item.kicker}</p><h3>${item.title}</h3><p>${item.description}</p>
-          <button class="slab-action" data-action="open-activity" data-id="${item.id}" aria-label="Start ${item.title}">Start <span aria-hidden="true">→</span></button>
+          <button class="slab-action" data-action="open-activity" data-id="${item.id}"><span>Start ${item.title}</span><span aria-hidden="true">→</span></button>
         </article>`).join('')}
       </section>
       ${footer()}

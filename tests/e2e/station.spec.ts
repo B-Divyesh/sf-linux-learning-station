@@ -20,7 +20,9 @@ test('@claim:six-free-activities demo exposes all six free activities at mobile 
     ['Moss Sketchbook', async () => { await page.getByRole('button', { name: 'Add dot' }).click(); await page.getByRole('button', { name: 'Save this drawing session' }).click(); }],
   ];
   for (const [name, complete] of paths) {
-    await page.getByRole('button', { name: `Start ${name}` }).click();
+    const start = page.getByRole('button', { name: `Start ${name}` });
+    await expect(start.locator('span').first()).toHaveText(`Start ${name}`);
+    await start.click();
     await complete();
     await expect(page.getByRole('heading', { name: /Good noticing!|points saved/ })).toBeVisible();
     await expect(page.getByText(/₹499|Restore a workshop license/)).toHaveCount(0);
@@ -90,12 +92,37 @@ test('@claim:offline-reload demo station completes and saves activity while full
   await expect(page.getByText('3 wins saved')).toBeVisible();
 });
 
+test('@claim:installable-pwa Chromium accepts the demo as an installable app', async ({ page }) => {
+  await page.goto('/demo');
+  await page.evaluate(() => navigator.serviceWorker.ready);
+  await page.reload();
+  await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+
+  const session = await page.context().newCDPSession(page);
+  const manifest = await session.send('Page.getAppManifest');
+  const installability = await session.send('Page.getInstallabilityErrors');
+  expect(manifest.errors).toEqual([]);
+  expect(installability.installabilityErrors).toEqual([]);
+
+  const data = JSON.parse(manifest.data ?? '{}');
+  expect(data).toMatchObject({
+    name: 'Linux Learning Station',
+    start_url: '/?source=pwa&v=1.2.2',
+    display: 'standalone',
+  });
+  expect(data.icons).toEqual(expect.arrayContaining([
+    expect.objectContaining({ sizes: '192x192', purpose: 'any' }),
+    expect.objectContaining({ sizes: '512x512', purpose: 'any maskable' }),
+  ]));
+});
+
 test('privacy and terms are real standalone pages', async ({ page }) => {
   await page.goto('/privacy/');
   await expect(page.getByRole('heading', { level: 1, name: 'Privacy' })).toBeVisible();
   await expect(page.locator('meta[property="og:title"]')).toHaveAttribute('content', 'Privacy — Linux Learning Station');
   await page.goto('/terms/');
   await expect(page.getByRole('heading', { level: 1, name: 'Terms' })).toBeVisible();
+  await expect(page.getByText('You may install the station on devices you control')).toBeVisible();
   await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute('content', 'summary_large_image');
 });
 
