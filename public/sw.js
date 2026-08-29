@@ -1,16 +1,14 @@
-const VERSION = 'station-v1.0.0';
+const VERSION = 'station-v1.1.3';
 const SHELL = `${VERSION}-shell`;
 const ASSETS = `${VERSION}-assets`;
-const CORE = ['/', '/offline.html', '/privacy/', '/terms/', '/legal.css', '/manifest.webmanifest', '/assets/station-hero.webp', '/assets/station-mark.svg', '/assets/icon-192.png', '/assets/icon-512.png'];
+const CORE = ['/', '/offline.html', '/privacy/', '/terms/', '/legal.css', '/manifest.webmanifest', '/assets/station-hero.webp', '/assets/social-card.webp', '/assets/station-mark.svg', '/assets/icon-192.png', '/assets/icon-512.png'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(SHELL).then(async (cache) => {
-    await cache.addAll(CORE);
-    const page = await cache.match('/');
-    if (!page) return;
-    const html = await page.text();
+    const page = await fetch('/');
+    const html = await page.clone().text();
     const builtAssets = [...html.matchAll(/(?:src|href)="(\/assets\/[^"]+)"/g)].map((match) => match[1]);
-    await cache.addAll([...new Set(builtAssets)]);
+    await cache.addAll([...new Set([...CORE, ...builtAssets])]);
   }));
 });
 
@@ -39,7 +37,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  event.respondWith(caches.match(event.request, { ignoreSearch: true }).then((cached) => cached || fetch(event.request).then((response) => {
+  event.respondWith(caches.match(url.pathname, { ignoreSearch: true }).then((cached) => cached || fetch(event.request).then((response) => {
     if (response.ok) caches.open(ASSETS).then((cache) => cache.put(event.request, response.clone()));
     return response;
   })));

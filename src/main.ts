@@ -3,6 +3,7 @@ import { activities, activityName, AGE_BANDS, keyPhrases, logicRounds, numberRou
 import { clearStation, loadStation, replaceStation, saveAttempt, saveSettings, validateImport } from './db';
 import { cachedLicense, captureLicense, checkLicense, checkoutUrl, storeLicense, type LicenseState } from './license';
 import { activeDays, progressCode, todayPoints } from './progress';
+import { appPath, isDemoMode } from './mode';
 import type { ActivityId, AgeBand, Attempt, StationData } from './types';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
@@ -12,21 +13,34 @@ let adultOpen = false;
 let installPrompt: Event | null = null;
 let feedback = '';
 let activityState: { id: ActivityId; round: number; score: number; result?: { correct: boolean; answer: string } } | null = null;
+let routeMessage = '';
 
 const esc = (value: string) => value.replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char]!);
 
 function route(): { page: 'home' | 'activity'; id?: ActivityId } {
-  const match = location.hash.match(/^#\/activity\/(patterns|keys|logic|spelling|numbers|drawing)$/);
+  const prefix = isDemoMode() ? '/demo' : '';
+  const match = location.pathname.match(new RegExp(`^${prefix}/activity/(patterns|keys|logic|spelling|numbers|drawing)$`));
   return match ? { page: 'activity', id: match[1] as ActivityId } : { page: 'home' };
+}
+
+function navigate(path: string, message: string): void {
+  history.pushState({}, '', appPath(path));
+  routeMessage = message;
+  render(true);
+}
+
+function footer(): string {
+  return `<footer class="site-footer"><p>Six local activities for shared Linux computers. <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a> · Built by Param Factory · v1.1.3</p>${station.settings.setupDone ? '<button class="text-button" data-action="toggle-adult">Open adult tools</button>' : ''}</footer>`;
 }
 
 function shell(content: string, page = 'home'): string {
   return `
     <header class="site-header screen-only">
-      <a class="brand" href="#/" data-action="home" aria-label="Linux Learning Station home">
+      <a class="brand" href="${appPath('/')}" data-action="home" aria-label="Linux Learning Station home">
         <img src="/assets/station-mark.svg" width="44" height="44" alt="" />
         <span>Linux Learning Station</span>
       </a>
+      <nav class="site-nav" aria-label="Primary navigation"><a href="/demo">Demo</a><a href="/privacy/">Privacy</a></nav>
       <div class="status-chips" aria-label="Station status">
         <span class="status-chip" id="connection-status"><span class="status-dot" aria-hidden="true"></span>${navigator.onLine ? 'Ready offline' : 'Offline'}</span>
         ${page === 'home' ? '<button class="utility-button" data-action="toggle-adult" aria-expanded="' + adultOpen + '">Adult tools</button>' : ''}
@@ -42,21 +56,28 @@ function setupView(): string {
   return shell(`
     <section class="setup-grid">
       <div class="setup-copy">
-        <p class="eyebrow">One computer. Six ways to grow.</p>
-        <h1>Set up this learning station</h1>
-        <p class="lede">Choose the child’s age range. There are no accounts, ads, or internet-required activities. You can change this later in Adult tools.</p>
+        <p class="eyebrow">Offline activities for shared Linux computers</p>
+        <h1 tabindex="-1">Start offline learning activities</h1>
+        <p class="lede">For parents and teachers setting up a shared computer for children aged 5–10.</p>
+        <button class="button primary demo-button" data-action="try-demo">Try it with sample data</button>
+        <p class="action-note">Opens a ready-to-use station with example progress. Nothing is saved to your real station.</p>
         <fieldset class="age-picker">
           <legend>Which practice level fits best?</legend>
           ${AGE_BANDS.map((age, index) => `<button class="age-slab" data-action="finish-setup" data-age="${age}"><span>Ages</span><strong>${age}</strong><small>${['First steps', 'Growing skills', 'Bigger challenges'][index]}</small></button>`).join('')}
         </fieldset>
-        <p class="privacy-note"><span aria-hidden="true">●</span> Progress stays on this computer. Nothing is sent to us.</p>
+        <p class="privacy-note"><span aria-hidden="true">●</span> Six activities · local progress · works after installation</p>
       </div>
       <figure class="hero-figure">
         <img src="/assets/station-hero.webp" width="1200" height="800" alt="A rugged concrete computer desk with moss, a keyboard, paper objects, and a blank screen" fetchpriority="high" decoding="async" />
-        <figcaption>A calm workbench for curious minds.</figcaption>
+        <figcaption>Patterns, typing, logic, spelling, numbers, and drawing.</figcaption>
       </figure>
     </section>
+    ${footer()}
   `, 'setup');
+}
+
+function demoBanner(): string {
+  return isDemoMode() ? `<aside class="demo-banner" aria-label="Demo mode"><strong>Demo — sample data, nothing is saved</strong><span>Try every activity safely.</span><div><button class="text-button" data-action="reset-demo">Reset demo</button><button class="text-button" data-action="start-real">Start for real</button></div></aside>` : '';
 }
 
 function progressSummary(): { done: number; days: number; points: number; code: string } {
@@ -75,7 +96,7 @@ function adultPanel(): string {
       <div class="adult-head"><div><p class="eyebrow">For a grown-up</p><h2>Station controls</h2></div><button class="icon-button" data-action="toggle-adult" aria-label="Close adult tools">×</button></div>
       ${feedback ? `<p class="feedback-banner" role="status">${esc(feedback)}</p>` : ''}
       <section><h3>Practice level</h3><div class="segmented" role="group" aria-label="Age range">${AGE_BANDS.map((age) => `<button data-action="set-age" data-age="${age}" aria-pressed="${station.settings.ageBand === age}">${age}${station.settings.ageBand === age ? '<span class="sr-only"> selected</span>' : ''}</button>`).join('')}</div></section>
-      <section><h3>Progress that stays here</h3><div class="mini-stats"><span><strong>${summary.done}</strong> wins</span><span><strong>${summary.days}</strong> days</span><span><strong>${summary.points}</strong> points today</span></div><p class="code-label">Printable progress code <strong>${summary.code}</strong></p><div class="button-row"><button class="button secondary" data-action="print">Print progress</button><button class="button secondary" data-action="export">Export data</button><label class="button secondary file-button">Import data<input id="import-file" type="file" accept="application/json" /></label></div></section>
+      <section><h3>Progress that stays here</h3><div class="mini-stats"><span><strong>${summary.done}</strong> wins</span><span><strong>${summary.days}</strong> days</span><span><strong>${summary.points}</strong> points today</span></div><p class="code-label">Printable progress code <strong>${summary.code}</strong></p><div class="button-row"><button class="button secondary" data-action="print">Print progress</button><button class="button secondary" data-action="export">Export data</button><input id="import-file" class="file-input" type="file" accept="application/json" /><label for="import-file" class="button secondary file-button">Import data</label></div></section>
       <section class="bundle-box"><span class="bundle-tab">Optional bundle</span><h3>${license.unlocked ? 'Workshop bundle unlocked' : 'More practice, one purchase'}</h3>${license.unlocked ? '<p>Thank you. Extended five-round sessions and detailed printouts are ready, even offline.</p>' : `<p>₹499 one time. Adds extended five-round practice and detailed printable week sheets. All six core activities remain free.</p><a class="button primary" href="${checkoutUrl}">Buy the offline bundle</a><details><summary>Have a license?</summary><form id="license-form"><label for="license-token">Paste license token</label><div class="input-row"><input id="license-token" name="token" autocomplete="off" required /><button class="button secondary" type="submit">Verify</button></div></form></details>`}<p class="quiet">${esc(license.notice)} Sociobot/Dodo is the merchant of record. Refunds are handled there.</p></section>
       <section><h3>Install & data</h3><p>Install once, then the activities and progress work without internet.</p><button class="button secondary" data-action="install" ${installPrompt ? '' : 'disabled'}>${installPrompt ? 'Install this station' : 'Install from your browser menu'}</button><button class="text-button danger" data-action="confirm-reset">Erase progress on this computer</button></section>
       <nav class="legal-links" aria-label="Legal"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a></nav>
@@ -90,7 +111,7 @@ function homeView(): string {
   const content = `
     <div class="station-layout screen-only">
       <section class="intro-block">
-        <div><p class="eyebrow">Ages ${station.settings.ageBand} · ${navigator.onLine ? 'saved on this computer' : 'working offline'}</p><h1>Choose today’s trail</h1><p class="lede">Short activities. Clear endings. Pick any slab to begin.</p></div>
+        <div><p class="eyebrow">Ages ${station.settings.ageBand} · ${navigator.onLine ? 'saved on this computer' : 'working offline'}</p><h1 tabindex="-1">Choose today’s trail</h1><p class="lede">Short activities. Clear endings. Pick any slab to begin.</p></div>
         <div class="today-stamp" aria-label="Today: ${summary.points} points"><span>Today</span><strong>${summary.points}</strong><small>points</small></div>
       </section>
       ${station.attempts.length === 0 ? '<section class="empty-note"><span aria-hidden="true">↳</span><p><strong>A fresh station.</strong> Pick any activity. The first win will appear here — no account needed.</p></section>' : `<section class="return-note"><span aria-hidden="true">✓</span><p><strong>Welcome back.</strong> Last win: ${recent ? esc(activityName(recent.activity)) : 'keep exploring'}.</p><span>${summary.done} wins saved</span></section>`}
@@ -103,12 +124,12 @@ function homeView(): string {
           <button class="slab-action" data-action="open-activity" data-id="${item.id}" aria-label="Start ${item.title}">Start <span aria-hidden="true">→</span></button>
         </article>`).join('')}
       </section>
-      <footer class="site-footer"><p>Made for old computers and growing minds. No telemetry. Generated hero imagery is disclosed in the project design record.</p><button class="text-button" data-action="toggle-adult">Open adult tools</button></footer>
+      ${footer()}
       ${adultPanel()}
     </div>
     ${printSheet()}
   `;
-  return shell(content);
+  return shell(`${demoBanner()}${content}`);
 }
 
 function printSheet(): string {
@@ -157,14 +178,14 @@ function activityView(id: ActivityId): string {
   const complete = current.round >= roundCount();
   const content = `<section class="play-page">
     <div class="play-top"><button class="back-button" data-action="home"><span aria-hidden="true">←</span> Station board</button><span>Ages ${station.settings.ageBand}</span></div>
-    <header class="activity-header"><p class="eyebrow">${info.kicker}</p><h1>${info.title}</h1>${!complete ? `<div class="round-meter" aria-label="Round ${current.round + 1} of ${roundCount()}"><span>Round ${current.round + 1} / ${roundCount()}</span><div><i style="width:${(current.round / roundCount()) * 100}%"></i></div></div>` : ''}</header>
+    <header class="activity-header"><p class="eyebrow">${info.kicker}</p><h1 tabindex="-1">${info.title}</h1>${!complete ? `<div class="round-meter" aria-label="Round ${current.round + 1} of ${roundCount()}"><span>Round ${current.round + 1} / ${roundCount()}</span><div><i data-progress="${(current.round / roundCount()) * 100}"></i></div></div>` : ''}</header>
     <section class="task-slab">${complete ? `<div class="session-complete"><span class="big-stamp" aria-hidden="true">${current.score >= 20 ? '✓' : '↗'}</span><p class="eyebrow">Trail complete</p><h2>${current.score} points saved</h2><p>That practice is stored on this computer. A short break helps learning stick.</p><div class="button-row"><button class="button primary" data-action="restart-activity">Play again</button><button class="button secondary" data-action="home">Choose another trail</button></div></div>` : activityTask(id, current.round)}</section>
     ${!license.unlocked && !complete ? '<p class="core-note">Core session · 3 rounds. Adult tools has an optional five-round bundle.</p>' : ''}
-  </section>`;
-  return shell(content, 'activity');
+  </section>${footer()}`;
+  return shell(`${demoBanner()}${content}`, 'activity');
 }
 
-function render(): void {
+function render(focusHeading = false): void {
   if (!station) return;
   if (!station.settings.setupDone) app.innerHTML = setupView();
   else {
@@ -176,6 +197,16 @@ function render(): void {
     } else app.innerHTML = homeView();
   }
   document.body.classList.toggle('panel-open', adultOpen);
+  document.querySelectorAll<HTMLElement>('.round-meter i[data-progress]').forEach((meter) => { meter.style.width = `${meter.dataset.progress}%`; });
+  const current = route();
+  document.title = current.page === 'activity' && current.id ? `${activityName(current.id)} — Linux Learning Station` : isDemoMode() ? 'Demo — Linux Learning Station' : 'Linux Learning Station — offline activities for ages 5–10';
+  if (focusHeading) requestAnimationFrame(() => {
+    const heading = document.querySelector<HTMLElement>('main h1');
+    heading?.focus();
+    const announcer = document.querySelector('#announcer');
+    if (announcer && routeMessage) announcer.textContent = routeMessage;
+    routeMessage = '';
+  });
 }
 
 function announce(message: string): void {
@@ -202,7 +233,7 @@ async function answer(value: string): Promise<void> {
   if (id === 'numbers') expected = numberRounds[age][round % 3].answer;
   if (id === 'spelling') expected = spellingRounds[age][round % 3].answer;
   if (id === 'keys') expected = keyPhrases[age][round % 3];
-  const normalized = id === 'spelling' ? value.trim().toLowerCase() : value.trim();
+  const normalized = id === 'spelling' ? value.trim().toLowerCase() : value;
   const correct = normalized === expected;
   await record(correct, correct ? 'Solved a round' : `Practised; answer: ${expected}`);
   activityState.result = { correct, answer: expected };
@@ -242,11 +273,19 @@ app.addEventListener('click', async (event) => {
   const action = button.dataset.action;
   if (action === 'finish-setup' || action === 'set-age') {
     station.settings = { ...station.settings, ageBand: button.dataset.age as AgeBand, setupDone: true };
-    await saveSettings(station.settings); adultOpen = false; feedback = `Practice level set to ages ${station.settings.ageBand}.`; render();
+    await saveSettings(station.settings); adultOpen = false; feedback = `Practice level set to ages ${station.settings.ageBand}.`; navigate('/', 'Station board opened.');
   }
-  if (action === 'toggle-adult') { adultOpen = !adultOpen; render(); if (adultOpen) document.querySelector<HTMLElement>('.adult-panel .icon-button')?.focus(); }
-  if (action === 'open-activity') { activityState = { id: button.dataset.id as ActivityId, round: 0, score: 0 }; location.hash = `/activity/${button.dataset.id}`; }
-  if (action === 'home') { event.preventDefault(); activityState = null; location.hash = '/'; render(); }
+  if (action === 'try-demo') location.assign('/demo');
+  if (action === 'start-real') location.assign('/');
+  if (action === 'reset-demo') { await clearStation(); station = await loadStation(); feedback = 'Demo reset to its sample progress.'; render(); }
+  if (action === 'toggle-adult') {
+    adultOpen = !adultOpen;
+    render();
+    if (adultOpen) document.querySelector<HTMLElement>('.adult-panel .icon-button')?.focus();
+    else document.querySelector<HTMLElement>('.site-header [data-action="toggle-adult"], .site-footer [data-action="toggle-adult"]')?.focus();
+  }
+  if (action === 'open-activity') { const id = button.dataset.id as ActivityId; activityState = { id, round: 0, score: 0 }; navigate(`/activity/${id}`, `${activityName(id)} opened.`); }
+  if (action === 'home') { event.preventDefault(); activityState = null; navigate('/', 'Station board opened.'); }
   if (action === 'answer-option') await answer(button.dataset.value ?? '');
   if (action === 'next-round' && activityState) { activityState.round++; delete activityState.result; render(); document.querySelector<HTMLElement>('.task-prompt, .session-complete h2')?.focus(); }
   if (action === 'restart-activity' && activityState) { activityState = { id: activityState.id, round: 0, score: 0 }; render(); }
@@ -265,8 +304,9 @@ app.addEventListener('click', async (event) => {
 });
 
 app.addEventListener('submit', async (event) => {
-  event.preventDefault();
   const form = event.target as HTMLFormElement;
+  if (form.closest('dialog')) return;
+  event.preventDefault();
   if (form.id === 'word-form' || form.id === 'key-form') await answer(new FormData(form).get('answer')?.toString() ?? '');
   if (form.id === 'license-form') { const token = new FormData(form).get('token')?.toString().trim(); if (token) { storeLicense(token); license = { unlocked: false, checking: true, notice: 'Checking license…' }; render(); license = await checkLicense(); render(); } }
 });
@@ -283,10 +323,21 @@ app.addEventListener('change', async (event) => {
   catch (error) { feedback = error instanceof Error ? error.message : 'Could not import that file.'; input.value = ''; render(); document.querySelector<HTMLElement>('.feedback-banner')?.focus(); }
 });
 
-window.addEventListener('hashchange', render);
+window.addEventListener('popstate', () => { activityState = null; routeMessage = 'Page changed.'; render(true); });
 window.addEventListener('online', () => { feedback = 'Connection restored. The station still works offline.'; render(); });
 window.addEventListener('offline', () => { feedback = 'You are offline. Activities and progress remain available.'; render(); });
 window.addEventListener('beforeinstallprompt', (event) => { event.preventDefault(); installPrompt = event; render(); });
+window.addEventListener('keydown', (event) => {
+  if (!adultOpen) return;
+  if (event.key === 'Escape') { adultOpen = false; render(); document.querySelector<HTMLElement>('[data-action="toggle-adult"]')?.focus(); return; }
+  if (event.key !== 'Tab') return;
+  const panel = document.querySelector<HTMLElement>('.adult-panel');
+  const controls = [...(panel?.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], input:not([disabled]), summary') ?? [])].filter((item) => !item.hidden);
+  if (!controls.length) return;
+  const first = controls[0]; const last = controls.at(-1)!;
+  if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+  else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+});
 
 async function registerServiceWorker(): Promise<void> {
   if (!('serviceWorker' in navigator) || import.meta.env.DEV) return;

@@ -5,9 +5,21 @@ const VERIFY_BASE = 'https://api.sociobot.in/api/v1/products';
 
 export interface LicenseState { unlocked: boolean; checking: boolean; notice: string; }
 
+function savedVerdict(): { valid: boolean; checkedAt: number } | null {
+  try {
+    const value: unknown = JSON.parse(localStorage.getItem(VERDICT_KEY) || 'null');
+    if (!value || typeof value !== 'object') return null;
+    const verdict = value as { valid?: unknown; checkedAt?: unknown };
+    return typeof verdict.valid === 'boolean' && typeof verdict.checkedAt === 'number' && Number.isFinite(verdict.checkedAt) ? { valid: verdict.valid, checkedAt: verdict.checkedAt } : null;
+  } catch {
+    localStorage.removeItem(VERDICT_KEY);
+    return null;
+  }
+}
+
 export function cachedLicense(): LicenseState {
   const token = localStorage.getItem(TOKEN_KEY);
-  const cached = JSON.parse(localStorage.getItem(VERDICT_KEY) || 'null') as { valid: boolean; checkedAt: number } | null;
+  const cached = savedVerdict();
   return { unlocked: Boolean(token && cached?.valid), checking: Boolean(token), notice: '' };
 }
 
@@ -28,7 +40,7 @@ export function storeLicense(token: string): void {
 export async function checkLicense(): Promise<LicenseState> {
   const token = localStorage.getItem(TOKEN_KEY);
   if (!token) return { unlocked: false, checking: false, notice: '' };
-  const cached = JSON.parse(localStorage.getItem(VERDICT_KEY) || 'null') as { valid: boolean; checkedAt: number } | null;
+  const cached = savedVerdict();
   const fresh = cached && Date.now() - cached.checkedAt < 86_400_000;
   if (fresh) return { unlocked: cached.valid, checking: false, notice: cached.valid ? '' : 'License no longer active.' };
   try {

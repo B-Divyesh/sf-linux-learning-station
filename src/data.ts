@@ -49,7 +49,7 @@ export const logicRounds: Record<AgeBand, Array<{ clue: string; options: string[
   '9–10': [
     { clue: 'No red tiles are round. Tile A is round. What follows?', options: ['A is not red', 'A is red', 'Nothing'], answer: 'A is not red' },
     { clue: 'If it rains, the path is wet. The path is dry. What follows?', options: ['It did not rain', 'It rained', 'No conclusion'], answer: 'It did not rain' },
-    { clue: 'Exactly one sign tells the truth. A says “B is true.” B says “Both are false.”', options: ['A is true', 'B is true', 'Both are true'], answer: 'A is true' },
+    { clue: 'The key is under the stone. Exactly one sign tells the truth. A says “The key is under the stone.” B says “The key is not under the stone.”', options: ['A is true', 'B is true', 'Both are true'], answer: 'A is true' },
   ],
 };
 

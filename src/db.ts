@@ -1,12 +1,25 @@
 import type { Attempt, Settings, StationData } from './types';
+import { isDemoMode } from './mode';
 
 const DB_NAME = 'linux-learning-station';
 const STORE = 'station';
 const DEFAULTS: Settings = { ageBand: '7–8', setupDone: false, sound: false };
 
+export const demoStation = (): StationData => ({
+  settings: { ageBand: '7–8', setupDone: true, sound: false },
+  attempts: [
+    { id: 'demo-pattern', activity: 'patterns', correct: true, points: 10, detail: 'Solved a shape pattern', createdAt: '2026-08-28T10:00:00.000Z' },
+    { id: 'demo-keys', activity: 'keys', correct: true, points: 10, detail: 'Typed a trail carefully', createdAt: '2026-08-28T10:03:00.000Z' },
+    { id: 'demo-numbers', activity: 'numbers', correct: false, points: 2, detail: 'Practised number stones', createdAt: '2026-08-29T09:15:00.000Z' },
+  ],
+  updatedAt: '2026-08-29T09:15:00.000Z',
+});
+
+function databaseName(): string { return isDemoMode() ? `${DB_NAME}-demo` : DB_NAME; }
+
 function openDb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, 1);
+    const request = indexedDB.open(databaseName(), 1);
     request.onupgradeneeded = () => request.result.createObjectStore(STORE);
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
@@ -34,6 +47,11 @@ async function setValue<T>(key: string, value: T): Promise<void> {
 export async function loadStation(): Promise<StationData> {
   const settings = await getValue<Settings>('settings');
   const attempts = await getValue<Attempt[]>('attempts');
+  if (isDemoMode() && !settings && !attempts) {
+    const sample = demoStation();
+    await replaceStation(sample);
+    return sample;
+  }
   return { settings: settings ?? DEFAULTS, attempts: attempts ?? [], updatedAt: new Date().toISOString() };
 }
 
@@ -52,14 +70,27 @@ export async function replaceStation(data: StationData): Promise<void> {
 }
 
 export async function clearStation(): Promise<void> {
-  await Promise.all([setValue('settings', DEFAULTS), setValue('attempts', [])]);
+  const next = isDemoMode() ? demoStation() : { settings: DEFAULTS, attempts: [] as Attempt[] };
+  await Promise.all([setValue('settings', next.settings), setValue('attempts', next.attempts)]);
 }
 
 export function validateImport(value: unknown): StationData {
   if (!value || typeof value !== 'object') throw new Error('That file does not contain station data.');
   const data = value as Partial<StationData>;
-  if (!data.settings || !['5–6', '7–8', '9–10'].includes(data.settings.ageBand) || !Array.isArray(data.attempts)) {
+  if (!data.settings || !['5–6', '7–8', '9–10'].includes(data.settings.ageBand) || typeof data.settings.setupDone !== 'boolean' || typeof data.settings.sound !== 'boolean' || !Array.isArray(data.attempts)) {
     throw new Error('That file is not a valid Learning Station export.');
   }
-  return { settings: { ...DEFAULTS, ...data.settings }, attempts: data.attempts.filter((item): item is Attempt => Boolean(item?.id && item?.activity && item?.createdAt)), updatedAt: data.updatedAt ?? new Date().toISOString() };
+  const activityIds = new Set(['patterns', 'keys', 'logic', 'spelling', 'numbers', 'drawing']);
+  const validAttempt = (item: unknown): item is Attempt => {
+    if (!item || typeof item !== 'object') return false;
+    const attempt = item as Partial<Attempt>;
+    return typeof attempt.id === 'string' && attempt.id.length > 0
+      && typeof attempt.activity === 'string' && activityIds.has(attempt.activity)
+      && typeof attempt.correct === 'boolean' && typeof attempt.points === 'number' && Number.isFinite(attempt.points)
+      && typeof attempt.detail === 'string' && typeof attempt.createdAt === 'string' && !Number.isNaN(Date.parse(attempt.createdAt));
+  };
+  if (!data.attempts.every(validAttempt) || (data.updatedAt !== undefined && (typeof data.updatedAt !== 'string' || Number.isNaN(Date.parse(data.updatedAt))))) {
+    throw new Error('That file is not a valid Learning Station export.');
+  }
+  return { settings: { ageBand: data.settings.ageBand, setupDone: data.settings.setupDone, sound: data.settings.sound }, attempts: data.attempts.slice(-500), updatedAt: data.updatedAt ?? new Date().toISOString() };
 }

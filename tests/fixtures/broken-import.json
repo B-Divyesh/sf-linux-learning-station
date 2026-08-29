@@ -1,0 +1,6 @@
+{
+  "settings": { "ageBand": "7–8", "setupDone": true, "sound": false },
+  "attempts": [
+    { "id": "bad", "activity": "patterns", "createdAt": "2026-08-29T00:00:00Z" }
+  ]
+}

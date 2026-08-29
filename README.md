@@ -1,6 +1,6 @@
 # Linux Learning Station
 
-Linux Learning Station is an installable, offline-first collection of six original mini-activities for children aged 5–10. It is designed for a parent or teacher setting up an older shared Linux computer: choose an age band, hand over the keyboard, and keep progress without creating a child account.
+Linux Learning Station is an installable collection of six offline learning activities for children aged 5–10. It is for a parent or teacher setting up an older shared Linux computer.
 
 Live product: <https://linux-learning-station.sociobot.in>
 
@@ -13,8 +13,13 @@ Live product: <https://linux-learning-station.sociobot.in>
 - Keyboard, pointer, and touch paths, including keyboard-created drawing shapes
 - Adult-only setup, install, reset, legal, and purchase controls
 - Six complete core activities for free; a ₹499 one-time workshop license adds five-round sessions and detailed week printouts
+- A one-click `/demo` station with isolated sample progress, Reset demo, and Start for real controls
 
-There is no analytics, advertising, chat, child account, cloud profile, or third-party runtime script. The optional purchase uses Sociobot’s hosted billing API; the app never embeds a payment provider.
+Core activity use has no analytics, advertising, chat, child account, cloud profile, or third-party runtime script. The optional purchase uses Sociobot’s hosted billing API; the app never embeds a payment provider.
+
+## Try the demo
+
+Open `/demo`, or select **Try it with sample data** on the first screen. It opens an ages 7–8 sample station in a separate IndexedDB database. See [.factory/demo.md](.factory/demo.md) for the sample, reset behavior, and storage namespace.
 
 ## Run locally
 
@@ -31,6 +36,7 @@ Open the local URL printed by Vite. Service workers are disabled in development 
 
 ```sh
 npm test          # unit tests, production build, Playwright + axe + offline test
+npm run lint      # TypeScript check
 npm run build     # exact deploy build; writes dist/index.html
 npm run preview   # serve dist locally
 ```
@@ -39,7 +45,7 @@ Playwright is pinned to 1.58.2. In the factory worker image its Chromium binary 
 
 ## Deploy
 
-This is a static Vite application. Run `npm ci && npm run build` and publish the `dist/` directory as the site root. The host should preserve directory indexes for `/privacy/` and `/terms/`; all learning activity routes use URL fragments and therefore need no rewrite rule.
+This is a static Vite application. Run `npm ci && npm run build` and publish the `dist/` directory as the site root. `staticwebapp.config.json` is emitted with the build and supplies activity/demo rewrites, a designed 404 response, security headers, and immutable asset caching.
 
 The factory registers the paid product and return URL separately. The app uses the slug-based endpoint and contains no hard-coded provider product ID.
 
@@ -47,4 +53,5 @@ The factory registers the paid product and return URL separately. The app uses t
 
 - [Visual system and asset provenance](.factory/design.md)
 - [Build handoff and verification](.factory/handoff.md)
+- [Tested product claims](.factory/claims.json)
 - [MIT license](LICENSE)
