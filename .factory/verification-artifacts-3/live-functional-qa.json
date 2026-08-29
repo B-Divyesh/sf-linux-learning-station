@@ -1,0 +1,262 @@
+{
+  "demoLanding": {
+    "h1": "Choose today’s trail",
+    "slabs": 6,
+    "banner": "Demo — sample data, nothing is saved\nTry every activity safely.\nReset demoStart for real"
+  },
+  "pattern": {
+    "url": "https://linux-learning-station.sociobot.in/demo/activity/patterns",
+    "outcome": "Good noticing!",
+    "banner": true
+  },
+  "reset": {
+    "wins": true,
+    "banner": true
+  },
+  "export": {
+    "filename": "learning-station-2026-08-29.json"
+  },
+  "invalidImport": {
+    "message": "That file is not a valid Learning Station export."
+  },
+  "activities": {
+    "patterns": {
+      "h1": "Pattern Quarry",
+      "banner": true,
+      "text": "Demo — sample data, nothing is saved\nTry every activity safely.\nReset demoStart for real\n← Station board\nAges 7–8\n\nNOTICE & PREDICT\n\nPattern Quarry\nRound 1 / 3\n\nWhat comes next?\n\n●"
+    },
+    "keys": {
+      "h1": "Key Trail",
+      "banner": true,
+      "text": "Demo — sample data, nothing is saved\nTry every activity safely.\nReset demoStart for real\n← Station board\nAges 7–8\n\nTYPE WITH CARE\n\nKey Trail\nRound 1 / 3\n\nType this trail exactly:\n\n"
+    },
+    "logic": {
+      "h1": "Logic Bridges",
+      "banner": true,
+      "text": "Demo — sample data, nothing is saved\nTry every activity safely.\nReset demoStart for real\n← Station board\nAges 7–8\n\nPLAN A ROUTE\n\nLogic Bridges\nRound 1 / 3\n\nAll moss is green. This "
+    },
+    "spelling": {
+      "h1": "Word Workshop",
+      "banner": true,
+      "text": "Demo — sample data, nothing is saved\nTry every activity safely.\nReset demoStart for real\n← Station board\nAges 7–8\n\nBUILD A WORD\n\nWord Workshop\nRound 1 / 3\n\nClue: It grows toward li"
+    },
+    "numbers": {
+      "h1": "Number Stones",
+      "banner": true,
+      "text": "Demo — sample data, nothing is saved\nTry every activity safely.\nReset demoStart for real\n← Station board\nAges 7–8\n\nSEE QUANTITY\n\nNumber Stones\nRound 1 / 3\n\n14 − 6 = ?\n\n7\n8\n9\n\nCore "
+    },
+    "drawing": {
+      "h1": "Moss Sketchbook",
+      "banner": true,
+      "text": "Demo — sample data, nothing is saved\nTry every activity safely.\nReset demoStart for real\n← Station board\nAges 7–8\n\nMAKE & IMAGINE\n\nMoss Sketchbook\nRound 1 / 3\n\nDraw a place where a"
+    }
+  },
+  "keyboardRoundFocus": true,
+  "targets": {
+    "under44": [],
+    "count": 16
+  },
+  "requests": [
+    {
+      "url": "https://linux-learning-station.sociobot.in/",
+      "type": "document"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/station-hero.webp",
+      "type": "image"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/index-C-kcO4k9.js",
+      "type": "script"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/style-B1fKU9_F.css",
+      "type": "stylesheet"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/station-mark.svg",
+      "type": "image"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/demo",
+      "type": "document"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/station-hero.webp",
+      "type": "image"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/index-C-kcO4k9.js",
+      "type": "script"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/style-B1fKU9_F.css",
+      "type": "stylesheet"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/station-mark.svg",
+      "type": "image"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/demo/activity/patterns",
+      "type": "document"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/station-hero.webp",
+      "type": "image"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/index-C-kcO4k9.js",
+      "type": "script"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/style-B1fKU9_F.css",
+      "type": "stylesheet"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/station-mark.svg",
+      "type": "image"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/demo/activity/keys",
+      "type": "document"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/station-hero.webp",
+      "type": "image"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/index-C-kcO4k9.js",
+      "type": "script"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/style-B1fKU9_F.css",
+      "type": "stylesheet"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/station-mark.svg",
+      "type": "image"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/demo/activity/logic",
+      "type": "document"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/station-hero.webp",
+      "type": "image"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/index-C-kcO4k9.js",
+      "type": "script"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/style-B1fKU9_F.css",
+      "type": "stylesheet"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/station-mark.svg",
+      "type": "image"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/demo/activity/spelling",
+      "type": "document"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/station-hero.webp",
+      "type": "image"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/index-C-kcO4k9.js",
+      "type": "script"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/style-B1fKU9_F.css",
+      "type": "stylesheet"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/station-mark.svg",
+      "type": "image"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/demo/activity/numbers",
+      "type": "document"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/station-hero.webp",
+      "type": "image"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/index-C-kcO4k9.js",
+      "type": "script"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/style-B1fKU9_F.css",
+      "type": "stylesheet"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/station-mark.svg",
+      "type": "image"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/demo/activity/drawing",
+      "type": "document"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/station-hero.webp",
+      "type": "image"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/index-C-kcO4k9.js",
+      "type": "script"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/style-B1fKU9_F.css",
+      "type": "stylesheet"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/station-mark.svg",
+      "type": "image"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/demo/activity/patterns",
+      "type": "document"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/station-hero.webp",
+      "type": "image"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/index-C-kcO4k9.js",
+      "type": "script"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/style-B1fKU9_F.css",
+      "type": "stylesheet"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/station-mark.svg",
+      "type": "image"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/demo",
+      "type": "document"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/station-hero.webp",
+      "type": "image"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/index-C-kcO4k9.js",
+      "type": "script"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/style-B1fKU9_F.css",
+      "type": "stylesheet"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/station-mark.svg",
+      "type": "image"
+    }
+  ],
+  "errors": []
+}

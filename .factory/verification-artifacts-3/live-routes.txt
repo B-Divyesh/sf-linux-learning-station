@@ -1,0 +1,11 @@
+/ 200
+/demo 200
+/demo/activity/patterns 200
+/activity/numbers 200
+/privacy/ 200
+/terms/ 200
+/manifest.webmanifest 200
+/sw.js 200
+/robots.txt 200
+/sitemap.xml 200
+/not-a-real-route 404

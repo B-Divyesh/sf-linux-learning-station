@@ -1,0 +1,2 @@
+> linux-learning-station@1.2.0 lint
+> tsc --noEmit

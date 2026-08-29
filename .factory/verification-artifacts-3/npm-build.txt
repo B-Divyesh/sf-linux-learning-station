@@ -1,0 +1,13 @@
+
+> linux-learning-station@1.2.0 build
+> tsc --noEmit && vite build
+
+vite v7.3.6 building client environment for production...
+transforming...
+✓ 9 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                  2.09 kB │ gzip:  0.70 kB
+dist/assets/style-B1fKU9_F.css  18.84 kB │ gzip:  4.98 kB
+dist/assets/index-C-kcO4k9.js   33.92 kB │ gzip: 12.01 kB │ map: 72.28 kB
+✓ built in 382ms

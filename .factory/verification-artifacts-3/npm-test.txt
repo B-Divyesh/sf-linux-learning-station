@@ -1,0 +1,49 @@
+
+> linux-learning-station@1.2.0 test
+> npm run test:unit && npm run test:e2e
+
+
+> linux-learning-station@1.2.0 test:unit
+> vitest run tests/unit
+
+
+ RUN  v3.2.7 /work/repo
+
+ ✓ tests/unit/progress.test.ts (4 tests) 5ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  20:02:54
+   Duration  1.11s (transform 181ms, setup 0ms, collect 183ms, tests 5ms, environment 0ms, prepare 117ms)
+
+
+> linux-learning-station@1.2.0 pretest:e2e
+> npm run build
+
+
+> linux-learning-station@1.2.0 build
+> tsc --noEmit && vite build
+
+vite v7.3.6 building client environment for production...
+transforming...
+✓ 9 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                  2.09 kB │ gzip:  0.70 kB
+dist/assets/style-B1fKU9_F.css  18.84 kB │ gzip:  4.98 kB
+dist/assets/index-C-kcO4k9.js   33.92 kB │ gzip: 12.01 kB │ map: 72.28 kB
+✓ built in 382ms
+
+> linux-learning-station@1.2.0 test:e2e
+> playwright test
+
+[WebServer] (node:2972) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 20 tests using 1 worker
+(node:2990) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2990) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+····················
+  20 passed (38.0s)

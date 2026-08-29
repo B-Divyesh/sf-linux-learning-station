@@ -1,0 +1,106 @@
+{
+  "status": 200,
+  "headers": {
+    "cache-control": "public, must-revalidate, max-age=30",
+    "content-encoding": "br",
+    "content-security-policy": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' https://api.sociobot.in; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
+    "content-type": "text/html",
+    "date": "Sat, 29 Aug 2026 20:04:25 GMT",
+    "etag": "\"41410009\"",
+    "last-modified": "Sat, 29 Aug 2026 19:47:51 GMT",
+    "permissions-policy": "camera=(), microphone=(), geolocation=()",
+    "referrer-policy": "strict-origin-when-cross-origin",
+    "strict-transport-security": "max-age=10886400; includeSubDomains; preload",
+    "vary": "Accept-Encoding",
+    "x-content-type-options": "nosniff",
+    "x-dns-prefetch-control": "off",
+    "x-xss-protection": "1; mode=block"
+  },
+  "first": {
+    "title": "Linux Learning Station — offline activities for ages 5–10",
+    "lang": "en",
+    "h1": "Start offline learning activities",
+    "visibleText": "Skip to activities\nLinux Learning Station\nDemo\nPrivacy\nReady offline\n\nOFFLINE ACTIVITIES FOR SHARED LINUX COMPUTERS\n\nStart offline learning activities\n\nFor parents and teachers setting up a shared computer for children aged 5–10.\n\nTry it with sample data\n\nOpens a ready-to-use station with example progress. Nothing is saved to your real station.\n\nWhich practice level fits best?\nAges\n5–6\nFirst steps\nAges\n7–8\nGrowing skills\nAges\n9–10\nBigger challenges\nSix core activities are free\nProgress stays on this computer\nWorks offline after installation\nOptional bundle: ₹499 once\nPatterns, typing, logic, spelling, numbers, and drawing.\n\nHOW IT WORKS\n\nStart in three steps\nChoose a practice level.\nPick ages 5–6, 7–8, or 9–10.\nStart any activity.\nEach core session has three short rounds.\nKeep progress locally.\nAdults can print, export, import, or erase it.\n\nPRIVACY\n\nNo child account or tracking\n\nThe station does not send activity progress to us. It has no ads, chat, cloud profile, or third-party scripts.\n\nRead the privacy details\n\nOPTIONAL BUNDLE\n\n₹499 one time\n\nAdds five-round sessions and detailed printouts. Every core activity stays free.\n\nNew sales are paused. Existing licenses can be restored in Adult tools.\n\nSix local activities for shared Linux computers. Privacy · Terms · Built by Param Factory · v1.2.0",
+    "buttons": [
+      {
+        "tag": "A",
+        "text": "Skip to activities",
+        "href": "#main"
+      },
+      {
+        "tag": "A",
+        "text": "Linux Learning Station",
+        "href": "/"
+      },
+      {
+        "tag": "A",
+        "text": "Demo",
+        "href": "/demo"
+      },
+      {
+        "tag": "A",
+        "text": "Privacy",
+        "href": "/privacy/"
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Try it with sample data",
+        "href": null
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Ages5–6First steps",
+        "href": null
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Ages7–8Growing skills",
+        "href": null
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Ages9–10Bigger challenges",
+        "href": null
+      },
+      {
+        "tag": "A",
+        "text": "Read the privacy details",
+        "href": "/privacy/"
+      },
+      {
+        "tag": "A",
+        "text": "Privacy",
+        "href": "/privacy/"
+      },
+      {
+        "tag": "A",
+        "text": "Terms",
+        "href": "/terms/"
+      }
+    ]
+  },
+  "requests": [
+    {
+      "url": "https://linux-learning-station.sociobot.in/",
+      "type": "document"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/station-hero.webp",
+      "type": "image"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/index-C-kcO4k9.js",
+      "type": "script"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/style-B1fKU9_F.css",
+      "type": "stylesheet"
+    },
+    {
+      "url": "https://linux-learning-station.sociobot.in/assets/station-mark.svg",
+      "type": "image"
+    }
+  ],
+  "consoleMessages": [],
+  "pageErrors": []
+}

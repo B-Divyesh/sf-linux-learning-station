@@ -1,0 +1,27 @@
+{
+  "axe": {
+    "/": [],
+    "/demo": [],
+    "/demo/activity/numbers": [],
+    "/privacy/": [],
+    "/terms/": []
+  },
+  "offline": {
+    "controlled": true,
+    "h1": "Choose today’s trail",
+    "connection": "Offline",
+    "banner": true,
+    "errors": []
+  },
+  "mobile": {
+    "skipFocused": true,
+    "overflow": {
+      "scrollWidth": 390,
+      "clientWidth": 390
+    },
+    "slabs": 6,
+    "demo": true,
+    "errors": []
+  },
+  "reducedMotion": "1e-05s"
+}
