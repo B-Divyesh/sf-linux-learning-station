@@ -192,7 +192,7 @@ test('@claim:installable-pwa Chromium accepts the demo as an installable app', a
     const data = JSON.parse(manifest.data ?? '{}');
     expect(data).toMatchObject({
       name: 'Linux Learning Station',
-      start_url: '/?source=pwa&v=1.2.5',
+      start_url: '/?source=pwa&v=1.2.6',
       display: 'standalone',
     });
     expect(data.icons).toEqual(expect.arrayContaining([
@@ -219,6 +219,30 @@ test('privacy and terms are real standalone pages', async ({ page }) => {
   await expect(page.locator('style, [style]')).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'Privacy' }).first()).toBeVisible();
   await expect(page.getByRole('link', { name: 'Terms' })).toBeVisible();
+});
+
+test('copy uses workshop bundle consistently and keeps setup instructions plain', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('main')).toContainText('Workshop bundle: ₹499 once');
+  await expect(page.locator('main')).toContainText('Workshop bundle — ₹499 once');
+  await expect(page.locator('main')).toContainText('code loaded from other sites');
+  await expect(page.locator('main')).not.toContainText(/optional (activity )?bundle|workshop license|third-party scripts/i);
+
+  await page.goto('/demo');
+  await page.getByRole('button', { name: 'Adult tools', exact: true }).click();
+  const adultTools = page.getByRole('complementary', { name: 'Adult tools' });
+  await expect(adultTools).toContainText('Workshop bundle');
+  await expect(adultTools).not.toContainText(/optional bundle|workshop license/i);
+
+  await page.goto('/privacy/');
+  await expect(page.locator('main')).toContainText('Buying the ₹499 workshop bundle opens hosted checkout.');
+
+  const readme = await readFile('README.md', 'utf8');
+  expect(readme).toContain('A ₹499 one-time workshop bundle adds five-round sessions and detailed week printouts.');
+  expect(readme).toContain('Adults can buy the workshop bundle through');
+  expect(readme).toContain('Service workers are disabled in development to avoid stale local assets. Test offline behavior against a production preview.');
+  expect(readme).toContain('In the factory worker image, Chromium uses `PLAYWRIGHT_BROWSERS_PATH`. Elsewhere, run `npx playwright install chromium` once if needed.');
+  expect(readme).not.toMatch(/optional bundle|workshop license|stale local assets;|PLAYWRIGHT_BROWSERS_PATH`;|third-party scripts/i);
 });
 
 test('real activity deep links survive setup and set route-specific metadata', async ({ page }) => {
@@ -565,7 +589,7 @@ test('@claim:checkout-purchase recorded hosted offer proves ₹499 one-time chec
       await route.fulfill({ status: fixture.response.status, contentType: fixture.response.contentType, body: checkoutBody });
     });
     await page.goto('/');
-    await expect(page.getByText('Optional bundle: ₹499 once', { exact: true })).toBeVisible();
+    await expect(page.getByText('Workshop bundle: ₹499 once', { exact: true })).toBeVisible();
     const buy = page.getByRole('link', { name: 'Buy workshop bundle — ₹499' });
     await expect(buy).toHaveAttribute('href', fixture.checkoutEndpoint);
     await buy.click();

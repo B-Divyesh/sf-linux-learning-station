@@ -15,7 +15,7 @@ let feedback = '';
 let activityState: { id: ActivityId; round: number; score: number; result?: { correct: boolean; answer: string } } | null = null;
 let routeMessage = '';
 let offlineReady = false;
-const BUILD_VERSION = 'v1.2.5';
+const BUILD_VERSION = 'v1.2.6';
 const SITE_URL = 'https://linux-learning-station.sociobot.in';
 
 const esc = (value: string) => value.replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char]!);
@@ -64,7 +64,7 @@ function setupView(): string {
         <p class="lede">For parents and teachers setting up a shared computer for children aged 5–10.</p>
         <button class="button primary demo-button" data-action="try-demo">Try it with sample data</button>
         <p class="action-note">Opens all six activities with ages 7–8 sample progress. Nothing is saved to your real station.</p>
-        <ul class="fact-list" aria-label="Key facts"><li>Six core activities are free</li><li>Progress stays on this computer</li><li>Works offline after the first visit</li><li>Optional bundle: ₹499 once</li></ul>
+        <ul class="fact-list" aria-label="Key facts"><li>Six core activities are free</li><li>Progress stays on this computer</li><li>Works offline after the first visit</li><li>Workshop bundle: ₹499 once</li></ul>
         <fieldset class="age-picker">
           <legend>Choose an age range</legend>
           ${AGE_BANDS.map((age) => `<button class="age-slab" data-action="finish-setup" data-age="${age}"><span>Start activities for ages</span><strong>${age}</strong><small>Open the station board</small></button>`).join('')}
@@ -80,8 +80,8 @@ function setupView(): string {
       <ol class="step-list"><li><strong>Choose an age range.</strong><span>Pick ages 5–6, 7–8, or 9–10.</span></li><li><strong>Start any activity.</strong><span>Five guided activities have three short rounds. Drawing is one open session.</span></li><li><strong>Keep progress locally.</strong><span>Adults can print, export, import, or erase it.</span></li></ol>
     </section>
     <section class="landing-section limits-section" aria-labelledby="privacy-heading">
-      <div><p class="eyebrow">Privacy</p><h2 id="privacy-heading">No child account or tracking</h2><p>The station does not send activity progress to us. It has no ads, chat, cloud profile, or third-party scripts.</p><a href="/privacy/">Read the privacy details</a></div>
-      <div class="price-slab"><p class="eyebrow">Optional bundle</p><h2>Optional activity bundle — ₹499 once</h2><p>Adds five-round sessions and detailed printouts. Every core activity stays free.</p><a class="button primary" href="${CHECKOUT_URL}" rel="external">Buy workshop bundle — ₹499</a><p class="quiet checkout-note">Opens secure Sociobot checkout. After payment, return here to use the bundle.</p><p>Already bought it? Restore the license in Adult tools.</p></div>
+      <div><p class="eyebrow">Privacy</p><h2 id="privacy-heading">No child account or tracking</h2><p>The station does not send activity progress to us. It has no ads, chat, cloud profile, or code loaded from other sites.</p><a href="/privacy/">Read the privacy details</a></div>
+      <div class="price-slab"><p class="eyebrow">Workshop bundle</p><h2>Workshop bundle — ₹499 once</h2><p>Adds five-round sessions and detailed printouts. Every core activity stays free.</p><a class="button primary" href="${CHECKOUT_URL}" rel="external">Buy workshop bundle — ₹499</a><p class="quiet checkout-note">Opens secure Sociobot checkout. After payment, return here to use the workshop bundle.</p><p>Already bought it? Restore the license in Adult tools.</p></div>
     </section>
     ${footer()}
   `, 'setup');
@@ -108,7 +108,7 @@ function adultPanel(): string {
       ${feedback ? `<p class="feedback-banner" role="status">${esc(feedback)}</p>` : ''}
       <section><h3>Age range</h3><div class="segmented" role="group" aria-label="Age range">${AGE_BANDS.map((age) => `<button data-action="set-age" data-age="${age}" aria-pressed="${station.settings.ageBand === age}">${age}${station.settings.ageBand === age ? '<span class="sr-only"> selected</span>' : ''}</button>`).join('')}</div></section>
       <section><h3>Progress that stays here</h3><div class="mini-stats"><span><strong>${summary.done}</strong> wins</span><span><strong>${summary.days}</strong> days</span><span><strong>${summary.points}</strong> points today</span></div><p class="code-label">Printable progress code <strong>${summary.code}</strong></p><div class="button-row"><button class="button secondary" data-action="print">Print progress</button><button class="button secondary" data-action="export">Export data</button><input id="import-file" class="file-input" type="file" accept="application/json" /><label for="import-file" class="button secondary file-button">Import data</label></div></section>
-      <section class="bundle-box"><span class="bundle-tab">Optional bundle</span><h3>${license.unlocked ? 'Workshop bundle unlocked' : 'Workshop bundle'}</h3>${license.unlocked ? '<p>Thank you. Extended five-round sessions and detailed printouts are ready.</p>' : `<p>₹499 one time. Adds extended five-round practice and detailed printable week sheets. Every core activity stays free.</p><a class="button primary" href="${CHECKOUT_URL}" rel="external">Buy workshop bundle — ₹499</a><p class="quiet checkout-note">Opens secure Sociobot checkout in this tab. An internet connection is required.</p><details open><summary>Have a license?</summary><form id="license-form"><label for="license-token">Paste license token</label><div class="input-row"><input id="license-token" name="token" autocomplete="off" required /><button class="button secondary" type="submit">Verify license</button></div></form></details>`}<p class="quiet">${license.notice ? `${esc(license.notice)} ` : ''}For purchase help, email <a href="mailto:support@sociobot.in">support@sociobot.in</a>.</p></section>
+      <section class="bundle-box"><span class="bundle-tab">Workshop bundle</span><h3>${license.unlocked ? 'Workshop bundle unlocked' : 'Workshop bundle'}</h3>${license.unlocked ? '<p>Thank you. Extended five-round sessions and detailed printouts are ready.</p>' : `<p>₹499 one time. Adds extended five-round practice and detailed printable week sheets. Every core activity stays free.</p><a class="button primary" href="${CHECKOUT_URL}" rel="external">Buy workshop bundle — ₹499</a><p class="quiet checkout-note">Opens secure Sociobot checkout in this tab. An internet connection is required.</p><details open><summary>Have a license?</summary><form id="license-form"><label for="license-token">Paste license token</label><div class="input-row"><input id="license-token" name="token" autocomplete="off" required /><button class="button secondary" type="submit">Verify license</button></div></form></details>`}<p class="quiet">${license.notice ? `${esc(license.notice)} ` : ''}For purchase help, email <a href="mailto:support@sociobot.in">support@sociobot.in</a>.</p></section>
       <section><h3>Install & data</h3><p>After the first visit, activities and saved progress work without internet.</p><button class="button secondary" data-action="install" ${installPrompt ? '' : 'disabled'}>${installPrompt ? 'Install this station' : 'Install from your browser menu'}</button><button class="text-button danger" data-action="confirm-reset">Erase progress on this computer</button></section>
       <nav class="legal-links" aria-label="Legal"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a></nav>
     </aside>

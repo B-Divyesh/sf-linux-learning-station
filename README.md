@@ -14,10 +14,10 @@ Live product: <https://linux-learning-station.sociobot.in>
 - Open saved pages offline after the first visit. Apply updates from an in-app notice.
 - Keyboard, pointer, and touch paths, including keyboard-created drawing shapes
 - Setup, install, reset, legal, and license controls grouped under Adult tools
-- Six free core activities. A ₹499 one-time workshop license adds five-round sessions and detailed week printouts.
+- Six free core activities. A ₹499 one-time workshop bundle adds five-round sessions and detailed week printouts.
 - A one-click `/demo` station with sample progress, Reset demo, and Start for real controls
 
-Core activities have no analytics, ads, chat, child account, cloud profile, or code loaded from other sites. Adults can buy the optional bundle through [Sociobot checkout](https://api.sociobot.in/api/v1/products/linux-learning-station/checkout) or restore a license in Adult tools.
+Core activities have no analytics, ads, chat, child account, cloud profile, or code loaded from other sites. Adults can buy the workshop bundle through [Sociobot checkout](https://api.sociobot.in/api/v1/products/linux-learning-station/checkout) or restore a license in Adult tools.
 
 ## Try the demo
 
@@ -32,7 +32,7 @@ npm ci
 npm run dev
 ```
 
-Open the local URL printed by Vite. Service workers are disabled in development to avoid stale local assets; test offline behavior against a production preview.
+Open the local URL printed by Vite. Service workers are disabled in development to avoid stale local assets. Test offline behavior against a production preview.
 
 ## Test and build
 
@@ -43,7 +43,7 @@ npm run build     # exact deploy build; writes dist/index.html
 npm run preview   # serve dist locally
 ```
 
-Playwright is pinned to 1.58.2. In the factory worker image its Chromium binary comes from `PLAYWRIGHT_BROWSERS_PATH`; elsewhere run `npx playwright install chromium` once if needed.
+Playwright is pinned to 1.58.2. In the factory worker image, Chromium uses `PLAYWRIGHT_BROWSERS_PATH`. Elsewhere, run `npx playwright install chromium` once if needed.
 
 ## Deploy
 
