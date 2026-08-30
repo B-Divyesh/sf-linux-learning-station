@@ -5,7 +5,7 @@
 - Review report: `95d386361011822906f7e4aebdcef31bc5ba3990`
 - Product repair commits: `aa46b32`, `c647902`, `8ca16ad`, `7a062c4`
 - Product version: `v1.2.5`
-- Final deployment: `0ed1b7fe-0c85-405d-91be-2a0d51854835`
+- Retry deployment: `bf4a0725-6ef6-4154-ae93-2c2767533285`
 - Live URL: <https://linux-learning-station.sociobot.in>
 - Result: **PASS — no review finding remains open**
 
@@ -55,7 +55,7 @@ Local artifacts:
 
 ## Live verification after deployment
 
-- The deployment completed successfully and the custom domain returned HTTPS 200.
+- Deployment `bf4a0725-6ef6-4154-ae93-2c2767533285` completed successfully and the custom domain returned HTTPS 200.
 - Fresh mobile contexts rechecked the first screen, one-click demo, banner/reset/exit, six activities, 200% text, deep-link focus, singular/plural copy, and the activity Adult tools panel.
 - Privacy and Terms contain no Dodo, merchant-of-record, refund-handler, or refund-revocation statement.
 - The checkout action shows ₹499 once. The versioned fixture proves INR 499.00 and one-time billing. The production endpoint returned HTTP 303 to hosted checkout.
@@ -65,8 +65,8 @@ Local artifacts:
 - Chromium reported zero manifest or installability errors. The controlled offline activity and full session-shape checks passed.
 - Security headers include CSP with response-header `frame-ancestors 'none'`, HSTS, `nosniff`, Referrer Policy, and Permissions Policy.
 - SHA-256 parity matched 17/17 checked deployed files to local `dist/`.
-- Live Lighthouse: Performance **100**, Accessibility **100**, Best Practices **100**, SEO **100**; FCP **0.9 s**, LCP **1.4 s**, TBT **0 ms**, CLS **0**, total transfer **120 KiB**.
-- `/opt/fleet/lib/verify-url.sh` passed with the expected title, `lang=en`, one h1, main, complete alt handling, labelled buttons, and no console errors.
+- Retry live Lighthouse: Performance **100**, Accessibility **100**, Best Practices **100**, SEO **100**; FCP **0.9 s**, LCP **1.4 s**, TBT **30 ms**, CLS **0**, total transfer **124 KiB**.
+- The post-deploy `/opt/fleet/lib/verify-url.sh` pass loaded cold in **590 ms** with the expected title, `lang=en`, one h1, main, complete alt handling, labelled buttons, and no console errors.
 
 Live artifacts:
 
@@ -76,7 +76,7 @@ Live artifacts:
 - [Live demo mobile screenshot](polish-4-live/live-demo-mobile.png)
 - [Live demo at 200% text](polish-4-live/live-demo-200-percent.png)
 - [Baseline verifier](polish-4-live/verify/verify.json)
-- [Lighthouse report](polish-4-live/lighthouse.json)
+- [Retry Lighthouse report](polish-4-live/lighthouse-retry1.json)
 
 ## Run and verify
 

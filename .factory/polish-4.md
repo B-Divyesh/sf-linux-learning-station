@@ -5,11 +5,11 @@
 - Review report commit: `95d386361011822906f7e4aebdcef31bc5ba3990`
 - Product repair commits: `aa46b32`, `c647902`, `8ca16ad`, `7a062c4`
 - Product build: `v1.2.5`
-- Final deployment: `0ed1b7fe-0c85-405d-91be-2a0d51854835`
+- Retry deployment: `bf4a0725-6ef6-4154-ae93-2c2767533285`
 - Live URL: <https://linux-learning-station.sociobot.in>
 - Result: every finding in reviews 1–4 is resolved.
 
-Primary evidence is in [`polish-4-live/live-check.json`](polish-4-live/live-check.json), [`polish-4-live/http-check.json`](polish-4-live/http-check.json), [`polish-4-live/lighthouse.json`](polish-4-live/lighthouse.json), and [`polish-4-live/verify/verify.json`](polish-4-live/verify/verify.json). Visual evidence includes the [cold first screen](polish-4-live/live-cold-mobile.png), [demo board](polish-4-live/live-demo-mobile.png), and [demo at 200% text](polish-4-live/live-demo-200-percent.png).
+Primary evidence is in [`polish-4-live/live-check.json`](polish-4-live/live-check.json), [`polish-4-live/http-check.json`](polish-4-live/http-check.json), [retry Lighthouse](polish-4-live/lighthouse-retry1.json), and [`polish-4-live/verify/verify.json`](polish-4-live/verify/verify.json). Visual evidence includes the [cold first screen](polish-4-live/live-cold-mobile.png), [demo board](polish-4-live/live-demo-mobile.png), and [demo at 200% text](polish-4-live/live-demo-200-percent.png).
 
 ## Review 1 findings
 
@@ -83,7 +83,7 @@ Primary evidence is in [`polish-4-live/live-check.json`](polish-4-live/live-chec
 - `npm test` passed 4 unit tests and 34 Playwright tests. `npm run lint`, `npm run build`, and `npm audit --omit=dev` passed.
 - The retry changes every offline, reload, update, and license assertion to use a disposable `browser.newContext()`. The final Playwright test closes a reload context, opens a new license-restore context, and confirms `browser.isConnected()` before and after. No test calls `browser.close()` on the fixture browser.
 - Build output: JavaScript 35.70 KB raw / 12.46 KB gzip; CSS 18.98 KB raw / 5.00 KB gzip; `dist/index.html` exists.
-- Local and live Lighthouse: Performance 100, Accessibility 100, Best Practices 100, SEO 100. Live FCP 0.9 s, LCP 1.4 s, TBT 0 ms, CLS 0, total transfer 120 KiB.
+- Retry live Lighthouse: Performance 100, Accessibility 100, Best Practices 100, SEO 100. FCP 0.9 s, LCP 1.4 s, TBT 30 ms, CLS 0, total transfer 124 KiB.
 - Live baseline verifier: correct title and language, one h1, one main, complete alt text, labelled buttons, and zero console errors.
 - Live deployment parity: 17/17 checked files match local `dist/` by SHA-256.
 - The concrete, moss, lichen, heavy-rule, and offset-shadow visual system remains unchanged. The original documented station image remains the hero art.
