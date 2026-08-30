@@ -1,7 +1,7 @@
 import './style.css';
 import { activities, activityName, AGE_BANDS, keyPhrases, logicRounds, numberRounds, patternRounds, spellingRounds } from './data';
 import { clearStation, discardDemoStation, loadStation, replaceStation, saveAttempt, saveSettings, validateImport } from './db';
-import { cachedLicense, captureLicense, checkLicense, storeLicense, type LicenseState } from './license';
+import { cachedLicense, captureLicense, checkLicense, CHECKOUT_URL, storeLicense, type LicenseState } from './license';
 import { activeDays, progressCode, todayPoints } from './progress';
 import { appPath, isDemoMode } from './mode';
 import type { ActivityId, AgeBand, Attempt, StationData } from './types';
@@ -15,7 +15,7 @@ let feedback = '';
 let activityState: { id: ActivityId; round: number; score: number; result?: { correct: boolean; answer: string } } | null = null;
 let routeMessage = '';
 let offlineReady = false;
-const BUILD_VERSION = 'v1.2.3';
+const BUILD_VERSION = 'v1.2.4';
 const SITE_URL = 'https://linux-learning-station.sociobot.in';
 
 const esc = (value: string) => value.replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char]!);
@@ -81,7 +81,7 @@ function setupView(): string {
     </section>
     <section class="landing-section limits-section" aria-labelledby="privacy-heading">
       <div><p class="eyebrow">Privacy</p><h2 id="privacy-heading">No child account or tracking</h2><p>The station does not send activity progress to us. It has no ads, chat, cloud profile, or third-party scripts.</p><a href="/privacy/">Read the privacy details</a></div>
-      <div class="price-slab"><p class="eyebrow">Optional bundle</p><h2>Optional activity bundle — ₹499 once</h2><p>Adds five-round sessions and detailed printouts. Every core activity stays free.</p><p>New licenses are not for sale now. Existing licenses can be restored in Adult tools.</p></div>
+      <div class="price-slab"><p class="eyebrow">Optional bundle</p><h2>Optional activity bundle — ₹499 once</h2><p>Adds five-round sessions and detailed printouts. Every core activity stays free.</p><a class="button primary" href="${CHECKOUT_URL}" rel="external">Buy workshop bundle — ₹499</a><p class="quiet checkout-note">Opens secure Sociobot checkout. After payment, return here to use the bundle.</p><p>Already bought it? Restore the license in Adult tools.</p></div>
     </section>
     ${footer()}
   `, 'setup');
@@ -108,7 +108,7 @@ function adultPanel(): string {
       ${feedback ? `<p class="feedback-banner" role="status">${esc(feedback)}</p>` : ''}
       <section><h3>Age range</h3><div class="segmented" role="group" aria-label="Age range">${AGE_BANDS.map((age) => `<button data-action="set-age" data-age="${age}" aria-pressed="${station.settings.ageBand === age}">${age}${station.settings.ageBand === age ? '<span class="sr-only"> selected</span>' : ''}</button>`).join('')}</div></section>
       <section><h3>Progress that stays here</h3><div class="mini-stats"><span><strong>${summary.done}</strong> wins</span><span><strong>${summary.days}</strong> days</span><span><strong>${summary.points}</strong> points today</span></div><p class="code-label">Printable progress code <strong>${summary.code}</strong></p><div class="button-row"><button class="button secondary" data-action="print">Print progress</button><button class="button secondary" data-action="export">Export data</button><input id="import-file" class="file-input" type="file" accept="application/json" /><label for="import-file" class="button secondary file-button">Import data</label></div></section>
-      <section class="bundle-box"><span class="bundle-tab">Optional bundle</span><h3>${license.unlocked ? 'Workshop bundle unlocked' : 'Restore a workshop license'}</h3>${license.unlocked ? '<p>Thank you. Extended five-round sessions and detailed printouts are ready.</p>' : `<p>₹499 one time. Adds extended five-round practice and detailed printable week sheets. New licenses are not for sale now.</p><details open><summary>Have a license?</summary><form id="license-form"><label for="license-token">Paste license token</label><div class="input-row"><input id="license-token" name="token" autocomplete="off" required /><button class="button secondary" type="submit">Verify license</button></div></form></details>`}<p class="quiet">${license.notice ? `${esc(license.notice)} ` : ''}For questions about an earlier purchase, email <a href="mailto:support@sociobot.in">support@sociobot.in</a>.</p></section>
+      <section class="bundle-box"><span class="bundle-tab">Optional bundle</span><h3>${license.unlocked ? 'Workshop bundle unlocked' : 'Workshop bundle'}</h3>${license.unlocked ? '<p>Thank you. Extended five-round sessions and detailed printouts are ready.</p>' : `<p>₹499 one time. Adds extended five-round practice and detailed printable week sheets. Every core activity stays free.</p><a class="button primary" href="${CHECKOUT_URL}" rel="external">Buy workshop bundle — ₹499</a><p class="quiet checkout-note">Opens secure Sociobot checkout in this tab. An internet connection is required.</p><details open><summary>Have a license?</summary><form id="license-form"><label for="license-token">Paste license token</label><div class="input-row"><input id="license-token" name="token" autocomplete="off" required /><button class="button secondary" type="submit">Verify license</button></div></form></details>`}<p class="quiet">${license.notice ? `${esc(license.notice)} ` : ''}For purchase help, email <a href="mailto:support@sociobot.in">support@sociobot.in</a>.</p></section>
       <section><h3>Install & data</h3><p>After the first visit, activities and saved progress work without internet.</p><button class="button secondary" data-action="install" ${installPrompt ? '' : 'disabled'}>${installPrompt ? 'Install this station' : 'Install from your browser menu'}</button><button class="text-button danger" data-action="confirm-reset">Erase progress on this computer</button></section>
       <nav class="legal-links" aria-label="Legal"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a></nav>
     </aside>
@@ -212,7 +212,8 @@ function render(focusHeading = false): void {
   updateMetadata();
   if (focusHeading) requestAnimationFrame(() => {
     const heading = document.querySelector<HTMLElement>('main h1');
-    heading?.focus();
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    heading?.focus({ preventScroll: true });
     const announcer = document.querySelector('#announcer');
     if (announcer && routeMessage) announcer.textContent = routeMessage;
     routeMessage = '';

@@ -18,7 +18,7 @@
 }
 
 * { box-sizing: border-box; }
-html { min-width: 320px; scroll-behavior: smooth; }
+html { min-width: 320px; }
 body { margin: 0; min-width: 320px; min-height: 100vh; background-color: var(--concrete); background-image: radial-gradient(#7c817833 0.7px, transparent 0.8px); background-size: 11px 11px; }
 button, input, textarea { font: inherit; }
 button, a, input, textarea, summary { -webkit-tap-highlight-color: transparent; }
@@ -81,6 +81,7 @@ button:disabled { opacity: .58; cursor: not-allowed; box-shadow: none; }
 .limits-section { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(24px, 6vw, 72px); border-top: var(--line); }
 .limits-section > div { max-width: 58ch; }
 .price-slab { padding: 24px; border: var(--line); background: var(--moss-light); box-shadow: 7px 7px 0 var(--ink); }
+.checkout-note { margin-top: 10px; }
 .demo-button { margin-top: 4px; }
 .action-note { margin: 8px 0 0; color: var(--weathered); font-size: .9rem; }
 .demo-banner { position: sticky; z-index: 30; top: 0; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px 18px; min-height: 52px; padding: 8px 16px; border-bottom: var(--line); background: var(--lichen); color: var(--ink); }
@@ -204,7 +205,7 @@ dialog::backdrop { background: #1d211caa; }
 .toast button { min-height: 44px; border: 2px solid #fff; background: var(--lichen); font-weight: 900; cursor: pointer; }
 .print-sheet { display: none; }
 
-@keyframes panel-in { from { opacity: 0; transform: translateX(24px); } }
+@keyframes panel-in { from { transform: translateX(24px); } }
 @keyframes stamp { from { opacity: 0; transform: scale(.7) rotate(-12deg); } }
 
 @media (max-width: 900px) {

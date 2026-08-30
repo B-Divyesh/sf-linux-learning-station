@@ -14,10 +14,10 @@ Live product: <https://linux-learning-station.sociobot.in>
 - Open saved pages offline after the first visit. Apply updates from an in-app notice.
 - Keyboard, pointer, and touch paths, including keyboard-created drawing shapes
 - Setup, install, reset, legal, and license controls grouped under Adult tools
-- Six free core activities. A valid ₹499 one-time workshop license adds five-round sessions and detailed week printouts.
+- Six free core activities. A ₹499 one-time workshop license adds five-round sessions and detailed week printouts.
 - A one-click `/demo` station with sample progress, Reset demo, and Start for real controls
 
-Core activities have no analytics, ads, chat, child account, cloud profile, or code loaded from other sites. New licenses are not for sale now. Adults can restore a valid existing license in Adult tools.
+Core activities have no analytics, ads, chat, child account, cloud profile, or code loaded from other sites. Adults can buy the optional bundle through [Sociobot checkout](https://api.sociobot.in/api/v1/products/linux-learning-station/checkout) or restore a license in Adult tools.
 
 ## Try the demo
 

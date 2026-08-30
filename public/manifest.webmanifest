@@ -3,7 +3,7 @@
   "name": "Linux Learning Station",
   "short_name": "Learning Station",
   "description": "Six offline learning activities for children aged 5–10.",
-  "start_url": "/?source=pwa&v=1.2.3",
+  "start_url": "/?source=pwa&v=1.2.4",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",

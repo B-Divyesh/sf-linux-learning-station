@@ -1,4 +1,4 @@
-# Copy audit — polish 3
+# Copy audit — repair 4
 
 The rendered landing page was read in order at 390 px and desktop width. Counts use whitespace-separated words. Every sentence is 22 words or fewer, no banned marketing term appears, and every action names its result. Claim-like copy maps to the tagged tests in `.factory/claims.json`.
 
@@ -40,11 +40,14 @@ The rendered landing page was read in order at 390 px and desktop width. Counts 
 | Optional activity bundle — ₹499 once | 6 | Pass |
 | Adds five-round sessions and detailed printouts. | 6 | Pass |
 | Every core activity stays free. | 5 | Pass |
-| New licenses are not for sale now. | 7 | Pass |
-| Existing licenses can be restored in Adult tools. | 8 | Pass — `paid-bundle` uses the visible form |
+| Buy workshop bundle — ₹499 | 4 | Pass — `checkout-purchase` follows the checkout redirect |
+| Opens secure Sociobot checkout. | 4 | Pass |
+| After payment, return here to use the bundle. | 8 | Pass |
+| Already bought it? | 3 | Pass |
+| Restore the license in Adult tools. | 6 | Pass — `paid-bundle` uses the visible form |
 | Six local activities for shared Linux computers. | 7 | Pass |
 | Built by Param Factory | 4 | Pass |
-| v1.2.3 | 1 | Pass |
+| v1.2.4 | 1 | Pass |
 | A rugged concrete computer desk with moss, a keyboard, paper objects, and a blank screen | 15 | Pass |
 
 ## Demo board action audit
@@ -60,7 +63,7 @@ The rendered landing page was read in order at 390 px and desktop width. Counts 
 | Reset demo | 2 | Pass |
 | Start for real | 3 | Pass |
 
-The Terms installation sentence has 19 words and uses “station,” not the implementation term “PWA.” Merchant, refund, and revocation assertions were removed because the product cannot prove them locally.
+The Terms installation sentence has 19 words and uses “station,” not the implementation term “PWA.” Purchase, refund, and revocation wording now matches the registered Sociobot/Dodo product contract.
 
 ## Terminology
 

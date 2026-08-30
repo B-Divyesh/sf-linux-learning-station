@@ -5,7 +5,7 @@ import AxeBuilder from '@axe-core/playwright';
 
 const baseURL = process.env.VERIFY_URL ?? 'https://linux-learning-station.sociobot.in';
 const canonicalBase = 'https://linux-learning-station.sociobot.in';
-const evidenceDir = '.factory/polish-3-live';
+const evidenceDir = '.factory/repair-4-live';
 const activityNames = ['Pattern Quarry', 'Key Trail', 'Logic Bridges', 'Word Workshop', 'Number Stones', 'Moss Sketchbook'];
 await mkdir(evidenceDir, { recursive: true });
 
@@ -66,6 +66,12 @@ try {
   assert.equal(await page.locator('html').getAttribute('lang'), 'en');
   assert.equal(await page.title(), 'Linux Learning Station — offline activities for ages 5–10');
   assert.equal(await page.getByRole('button', { name: 'Try it with sample data' }).isVisible(), true);
+  const checkoutHref = await page.getByRole('link', { name: 'Buy workshop bundle — ₹499' }).getAttribute('href');
+  assert.equal(checkoutHref, 'https://api.sociobot.in/api/v1/products/linux-learning-station/checkout');
+  const checkoutResponse = await context.request.get(checkoutHref, { maxRedirects: 0 });
+  assert.equal(checkoutResponse.status(), 303);
+  assert.equal(new URL(checkoutResponse.headers().location).origin, 'https://checkout.dodopayments.com');
+  report.checks.checkout = 'visible ₹499 action → Sociobot endpoint → 303 hosted Dodo checkout';
   const factBox = await page.locator('.fact-list').boundingBox();
   assert.ok(factBox && factBox.y + factBox.height <= 844, 'first-screen facts must fit in the mobile viewport');
   await axeSerious(page, '/');
@@ -111,6 +117,7 @@ try {
   await page.getByRole('heading', { name: 'Pattern Quarry' }).waitFor();
   await page.waitForFunction(() => document.activeElement === document.querySelector('main h1'));
   assert.equal(await page.getByRole('heading', { name: 'Pattern Quarry' }).evaluate((node) => node === document.activeElement), true);
+  assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).scrollBehavior), 'auto');
   await page.locator('[data-action="answer-option"][data-value="●"]').click();
   await page.getByRole('button', { name: 'Station board' }).click();
   assert.equal(await page.getByText('3 wins saved').isVisible(), true);
@@ -135,13 +142,14 @@ try {
   assert.equal(await page.locator('link[rel="canonical"]').getAttribute('href'), `${canonicalBase}/terms/`);
   await axeSerious(page, '/terms/');
   const termsText = await page.locator('main').innerText();
-  assert.doesNotMatch(termsText, /merchant of record|refund|charge reversal/i);
+  assert.match(termsText, /Sociobot and Dodo handle checkout, payment, and refunds/i);
+  assert.match(termsText, /refunded purchase no longer has an active license/i);
 
   await page.goto(`${baseURL}/privacy/`);
   assert.equal(await page.title(), 'Privacy — Linux Learning Station');
   const privacyText = await page.locator('main').innerText();
   assert.match(privacyText, /sends only that token/i);
-  assert.doesNotMatch(privacyText, /merchant of record|refund/i);
+  assert.match(privacyText, /does not send age range, answers, drawings, or progress to checkout/i);
   await axeSerious(page, '/privacy/');
 
   assert.deepEqual(report.consoleErrors, []);

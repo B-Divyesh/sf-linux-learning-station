@@ -1,4 +1,4 @@
-const VERSION = 'station-v1.2.3';
+const VERSION = 'station-v1.2.4';
 const SHELL = `${VERSION}-shell`;
 const ASSETS = `${VERSION}-assets`;
 const CORE = ['/', '/offline.html', '/privacy/', '/terms/', '/legal.css', '/manifest.webmanifest', '/assets/station-hero.webp', '/assets/social-card.webp', '/assets/station-mark.svg', '/assets/icon-192.png', '/assets/icon-512.png'];

@@ -104,7 +104,7 @@ test('adult tools expose local data and legal controls', async ({ page }) => {
   await page.getByRole('button', { name: 'Adult tools', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Station controls' })).toBeVisible();
   await expect(page.getByLabel('Adult tools', { exact: true }).getByText(/MOSS-78-/)).toBeVisible();
-  await expect(page.getByText('New licenses are not for sale now.')).toBeVisible();
+  await expect(page.getByLabel('Adult tools', { exact: true }).getByRole('link', { name: 'Buy workshop bundle — ₹499' })).toHaveAttribute('href', 'https://api.sociobot.in/api/v1/products/linux-learning-station/checkout');
   await expect(page.getByLabel('Legal').getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', '/privacy/');
 });
 
@@ -144,7 +144,7 @@ test('@claim:installable-pwa Chromium accepts the demo as an installable app', a
   const data = JSON.parse(manifest.data ?? '{}');
   expect(data).toMatchObject({
     name: 'Linux Learning Station',
-    start_url: '/?source=pwa&v=1.2.3',
+    start_url: '/?source=pwa&v=1.2.4',
     display: 'standalone',
   });
   expect(data.icons).toEqual(expect.arrayContaining([
@@ -468,13 +468,33 @@ test('@claim:age-ranges opens distinct guided content for each age range', async
   }
 });
 
-test('@claim:sales-paused exposes no checkout or purchase action', async ({ page }) => {
+test('@claim:checkout-purchase opens hosted checkout and accepts the returned license', async ({ page }) => {
+  const checkoutRequests: import('@playwright/test').Request[] = [];
+  const token = 'returned-checkout-license';
+  await page.route('https://api.sociobot.in/api/v1/products/linux-learning-station/checkout', async (route) => {
+    checkoutRequests.push(route.request());
+    await route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><html lang="en"><title>Secure checkout</title><body><main><h1>Secure checkout</h1></main></body></html>' });
+  });
   await page.goto('/');
-  await expect(page.getByText('New licenses are not for sale now.')).toBeVisible();
-  await page.goto('/demo');
+  const buy = page.getByRole('link', { name: 'Buy workshop bundle — ₹499' });
+  await expect(buy).toHaveAttribute('href', 'https://api.sociobot.in/api/v1/products/linux-learning-station/checkout');
+  await buy.click();
+  await expect(page).toHaveURL('https://api.sociobot.in/api/v1/products/linux-learning-station/checkout');
+  await expect(page.getByRole('heading', { name: 'Secure checkout' })).toBeVisible();
+  expect(checkoutRequests).toHaveLength(1);
+  expect(checkoutRequests[0].method()).toBe('GET');
+  expect(checkoutRequests[0].postData()).toBeNull();
+  expect(new URL(checkoutRequests[0].url()).search).toBe('');
+  expect(checkoutRequests[0].headers()['cookie']).toBeUndefined();
+
+  await page.route(`https://api.sociobot.in/api/v1/products/linux-learning-station/verify?license=${token}`, async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: '{"valid":true}' });
+  });
+  await page.goto(`/demo?license=${token}`);
+  await expect(page).toHaveURL('/demo');
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('sb_license:linux-learning-station'))).toBe(token);
   await page.getByRole('button', { name: 'Adult tools', exact: true }).click();
-  await expect(page.getByText('New licenses are not for sale now.')).toBeVisible();
-  await expect(page.locator('a[href*="checkout"], button:has-text("Buy"), button:has-text("Purchase")')).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Workshop bundle unlocked' })).toBeVisible();
 });
 
 test('@claim:daily-license-check verifies a stored license no more than once per day', async ({ page }) => {
@@ -504,6 +524,18 @@ test('regressions: demo route, round focus, recovery handler, and 44px mobile ta
   expect(await page.locator('[onclick]').count()).toBe(0);
 });
 
+test('regression: back and forward leave activity answers stable for immediate input', async ({ page }) => {
+  await page.goto('/demo');
+  await page.getByRole('button', { name: 'Start Pattern Quarry' }).click();
+  await page.goBack();
+  await expect(page.getByRole('heading', { name: 'Choose an activity' })).toBeFocused();
+  await page.goForward();
+  await expect(page.getByRole('heading', { name: 'Pattern Quarry' })).toBeFocused();
+  await expect(page.evaluate(() => getComputedStyle(document.documentElement).scrollBehavior)).resolves.toBe('auto');
+  await page.locator('[data-action="answer-option"][data-value="●"]').click();
+  await expect(page.getByRole('heading', { name: 'Good noticing!' })).toBeVisible();
+});
+
 test('regression: blocked IndexedDB recovery reloads without inline script', async ({ page }) => {
   const errors: string[] = [];
   page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
@@ -526,7 +558,6 @@ test('accessibility smoke: cold, demo, activity, adult tools, privacy, and terms
   await page.goto('/'); await scan();
   await page.goto('/demo'); await scan();
   await page.getByRole('button', { name: 'Adult tools', exact: true }).click();
-  await page.waitForTimeout(300);
   await scan();
   await page.goto('/demo/activity/numbers'); await scan();
   await page.setViewportSize({ width: 390, height: 844 });

@@ -2,6 +2,7 @@ const SLUG = 'linux-learning-station';
 const TOKEN_KEY = `sb_license:${SLUG}`;
 const VERDICT_KEY = `sb_license_verdict:${SLUG}`;
 const VERIFY_BASE = 'https://api.sociobot.in/api/v1/products';
+export const CHECKOUT_URL = `${VERIFY_BASE}/${SLUG}/checkout`;
 
 export interface LicenseState { unlocked: boolean; checking: boolean; notice: string; }
 
