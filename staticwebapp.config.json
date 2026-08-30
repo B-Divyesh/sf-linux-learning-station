@@ -1,8 +1,18 @@
 {
   "routes": [
-    { "route": "/activity/*", "rewrite": "/index.html" },
+    { "route": "/activity/patterns", "rewrite": "/index.html" },
+    { "route": "/activity/keys", "rewrite": "/index.html" },
+    { "route": "/activity/logic", "rewrite": "/index.html" },
+    { "route": "/activity/spelling", "rewrite": "/index.html" },
+    { "route": "/activity/numbers", "rewrite": "/index.html" },
+    { "route": "/activity/drawing", "rewrite": "/index.html" },
     { "route": "/demo", "rewrite": "/index.html" },
-    { "route": "/demo/activity/*", "rewrite": "/index.html" },
+    { "route": "/demo/activity/patterns", "rewrite": "/index.html" },
+    { "route": "/demo/activity/keys", "rewrite": "/index.html" },
+    { "route": "/demo/activity/logic", "rewrite": "/index.html" },
+    { "route": "/demo/activity/spelling", "rewrite": "/index.html" },
+    { "route": "/demo/activity/numbers", "rewrite": "/index.html" },
+    { "route": "/demo/activity/drawing", "rewrite": "/index.html" },
     { "route": "/assets/*", "headers": { "Cache-Control": "public, max-age=31536000, immutable" } },
     { "route": "/sw.js", "headers": { "Cache-Control": "no-cache" } }
   ],

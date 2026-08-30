@@ -1,6 +1,6 @@
-# Copy audit — polish 2
+# Copy audit — polish 3
 
-The rendered landing page was read in order at 390 px and desktop width. Counts use whitespace-separated words. Every sentence is 22 words or fewer, no banned marketing term appears, and every action names its result.
+The rendered landing page was read in order at 390 px and desktop width. Counts use whitespace-separated words. Every sentence is 22 words or fewer, no banned marketing term appears, and every action names its result. Claim-like copy maps to the tagged tests in `.factory/claims.json`.
 
 | Copy | Words | Result |
 | --- | ---: | --- |
@@ -21,7 +21,7 @@ The rendered landing page was read in order at 390 px and desktop width. Counts 
 | Works offline after the first visit | 6 | Pass |
 | Optional bundle: ₹499 once | 4 | Pass |
 | Choose an age range | 5 | Pass |
-| Start activities for ages 5–6 / 7–8 / 9–10 | 6 | Pass |
+| Start activities for ages 5–6 / 7–8 / 9–10 | 5 | Pass — `age-ranges` |
 | Open the station board | 4 | Pass |
 | Patterns, typing, logic, spelling, numbers, and drawing. | 7 | Pass |
 | Three steps | 2 | Pass |
@@ -29,8 +29,8 @@ The rendered landing page was read in order at 390 px and desktop width. Counts 
 | Choose an age range. | 4 | Pass |
 | Pick ages 5–6, 7–8, or 9–10. | 6 | Pass |
 | Start any activity. | 3 | Pass |
-| Five guided activities have three short rounds. | 7 | Pass |
-| Drawing is one open session. | 5 | Pass |
+| Five guided activities have three short rounds. | 7 | Pass — `core-session-shape` |
+| Drawing is one open session. | 5 | Pass — `core-session-shape` |
 | Keep progress locally. | 3 | Pass |
 | Adults can print, export, import, or erase it. | 8 | Pass |
 | No child account or tracking | 5 | Pass |
@@ -41,9 +41,10 @@ The rendered landing page was read in order at 390 px and desktop width. Counts 
 | Adds five-round sessions and detailed printouts. | 6 | Pass |
 | Every core activity stays free. | 5 | Pass |
 | New licenses are not for sale now. | 7 | Pass |
-| Existing licenses can be restored in Adult tools. | 8 | Pass |
+| Existing licenses can be restored in Adult tools. | 8 | Pass — `paid-bundle` uses the visible form |
 | Six local activities for shared Linux computers. | 7 | Pass |
 | Built by Param Factory | 4 | Pass |
+| v1.2.3 | 1 | Pass |
 | A rugged concrete computer desk with moss, a keyboard, paper objects, and a blank screen | 15 | Pass |
 
 ## Demo board action audit
@@ -59,7 +60,7 @@ The rendered landing page was read in order at 390 px and desktop width. Counts 
 | Reset demo | 2 | Pass |
 | Start for real | 3 | Pass |
 
-The Terms installation sentence has 19 words and uses “station,” not the implementation term “PWA.”
+The Terms installation sentence has 19 words and uses “station,” not the implementation term “PWA.” Merchant, refund, and revocation assertions were removed because the product cannot prove them locally.
 
 ## Terminology
 

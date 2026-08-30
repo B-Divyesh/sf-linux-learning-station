@@ -4,7 +4,8 @@ import { chromium } from 'playwright';
 import AxeBuilder from '@axe-core/playwright';
 
 const baseURL = process.env.VERIFY_URL ?? 'https://linux-learning-station.sociobot.in';
-const evidenceDir = '.factory/polish-2-live';
+const canonicalBase = 'https://linux-learning-station.sociobot.in';
+const evidenceDir = '.factory/polish-3-live';
 const activityNames = ['Pattern Quarry', 'Key Trail', 'Logic Bridges', 'Word Workshop', 'Number Stones', 'Moss Sketchbook'];
 await mkdir(evidenceDir, { recursive: true });
 
@@ -16,6 +17,39 @@ async function axeSerious(page, route) {
   const violations = results.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? ''));
   assert.deepEqual(violations, [], `${route} has serious or critical axe violations`);
   report.checks[`axe:${route}`] = 0;
+}
+
+async function completeCoreSessions(page) {
+  const guided = [
+    { name: 'Pattern Quarry', kind: 'option', answers: ['●', '▲', '●'] },
+    { name: 'Key Trail', kind: 'typing', answers: ['quiet keys', 'plants need light', 'I can learn offline.'] },
+    { name: 'Logic Bridges', kind: 'option', answers: ['It is green', 'Cy', '18'] },
+    { name: 'Word Workshop', kind: 'spelling', answers: ['plant', 'bridge', 'book'] },
+    { name: 'Number Stones', kind: 'option', answers: ['8', '6 × 4', '9'] },
+  ];
+  for (const activity of guided) {
+    await page.getByRole('button', { name: `Start ${activity.name}` }).click();
+    for (let round = 0; round < 3; round += 1) {
+      assert.equal(await page.getByText(`Round ${round + 1} / 3`).isVisible(), true);
+      if (activity.kind === 'typing') {
+        await page.getByLabel('Your typing').fill(activity.answers[round]);
+        await page.getByRole('button', { name: 'Check typing' }).click();
+      } else if (activity.kind === 'spelling') {
+        await page.getByLabel('Build the word').fill(activity.answers[round]);
+        await page.getByRole('button', { name: 'Check word' }).click();
+      } else {
+        await page.getByRole('button', { name: activity.answers[round], exact: true }).click();
+      }
+      await page.getByRole('button', { name: round === 2 ? 'Finish session' : 'Next round' }).click();
+    }
+    await page.getByRole('heading', { name: '30 points saved' }).waitFor();
+    await page.getByRole('button', { name: 'Station board' }).click();
+  }
+  await page.getByRole('button', { name: 'Start Moss Sketchbook' }).click();
+  assert.equal(await page.locator('.round-meter').count(), 0);
+  await page.getByRole('button', { name: 'Add dot' }).click();
+  await page.getByRole('button', { name: 'Save this drawing session' }).click();
+  await page.getByRole('heading', { name: '10 points saved' }).waitFor();
 }
 
 try {
@@ -50,18 +84,32 @@ try {
   }).map((node) => ({ text: node.textContent?.trim(), width: node.getBoundingClientRect().width, height: node.getBoundingClientRect().height })));
   assert.equal(targets.every(({ width, height }) => width >= 44 && height >= 44), true, JSON.stringify(targets.filter(({ width, height }) => width < 44 || height < 44)));
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
-  assert.equal(await page.locator('link[rel="canonical"]').getAttribute('href'), `${baseURL}/demo`);
+  assert.equal(await page.locator('link[rel="canonical"]').getAttribute('href'), `${canonicalBase}/demo`);
   await axeSerious(page, '/?demo=1');
   await page.screenshot({ path: `${evidenceDir}/live-demo-mobile.png`, fullPage: true });
+  await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
+  const resizeGeometry = await page.evaluate(() => {
+    const stamp = document.querySelector('.today-stamp').getBoundingClientRect();
+    return { clientWidth: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth, stampLeft: stamp.left, stampRight: stamp.right };
+  });
+  assert.ok(resizeGeometry.scrollWidth <= resizeGeometry.clientWidth, JSON.stringify(resizeGeometry));
+  assert.ok(resizeGeometry.stampLeft >= 0 && resizeGeometry.stampRight <= resizeGeometry.clientWidth, JSON.stringify(resizeGeometry));
+  await page.screenshot({ path: `${evidenceDir}/live-demo-200-percent.png` });
+  await page.evaluate(() => { document.documentElement.style.fontSize = ''; });
+  report.checks.textResize = resizeGeometry;
 
   await page.getByRole('button', { name: 'Start Pattern Quarry' }).click();
   assert.equal(await page.getByRole('heading', { name: 'Pattern Quarry' }).evaluate((node) => node === document.activeElement), true);
   assert.equal(await page.getByLabel('Demo mode').isVisible(), true);
   assert.equal(await page.title(), 'Pattern Quarry — Linux Learning Station');
-  assert.equal(await page.locator('link[rel="canonical"]').getAttribute('href'), `${baseURL}/demo/activity/patterns`);
+  assert.equal(await page.locator('link[rel="canonical"]').getAttribute('href'), `${canonicalBase}/demo/activity/patterns`);
   await page.goBack();
+  await page.getByRole('heading', { name: 'Choose an activity' }).waitFor();
+  await page.waitForFunction(() => document.activeElement === document.querySelector('main h1'));
   assert.equal(await page.getByRole('heading', { name: 'Choose an activity' }).evaluate((node) => node === document.activeElement), true);
   await page.goForward();
+  await page.getByRole('heading', { name: 'Pattern Quarry' }).waitFor();
+  await page.waitForFunction(() => document.activeElement === document.querySelector('main h1'));
   assert.equal(await page.getByRole('heading', { name: 'Pattern Quarry' }).evaluate((node) => node === document.activeElement), true);
   await page.locator('[data-action="answer-option"][data-value="●"]').click();
   await page.getByRole('button', { name: 'Station board' }).click();
@@ -78,20 +126,31 @@ try {
   await page.waitForURL(`${baseURL}/activity/patterns`);
   await page.getByRole('heading', { name: 'Pattern Quarry' }).waitFor();
   assert.equal(await page.title(), 'Pattern Quarry — Linux Learning Station');
-  assert.equal(await page.locator('link[rel="canonical"]').getAttribute('href'), `${baseURL}/activity/patterns`);
+  assert.equal(await page.locator('link[rel="canonical"]').getAttribute('href'), `${canonicalBase}/activity/patterns`);
   report.checks.realDeepLink = 'setup preserved /activity/patterns';
 
   await page.goto(`${baseURL}/terms/`);
   assert.equal(await page.getByText('You may install the station on devices you control').isVisible(), true);
   assert.equal(await page.title(), 'Terms — Linux Learning Station');
-  assert.equal(await page.locator('link[rel="canonical"]').getAttribute('href'), `${baseURL}/terms/`);
+  assert.equal(await page.locator('link[rel="canonical"]').getAttribute('href'), `${canonicalBase}/terms/`);
   await axeSerious(page, '/terms/');
+  const termsText = await page.locator('main').innerText();
+  assert.doesNotMatch(termsText, /merchant of record|refund|charge reversal/i);
 
   await page.goto(`${baseURL}/privacy/`);
   assert.equal(await page.title(), 'Privacy — Linux Learning Station');
+  const privacyText = await page.locator('main').innerText();
+  assert.match(privacyText, /sends only that token/i);
+  assert.doesNotMatch(privacyText, /merchant of record|refund/i);
   await axeSerious(page, '/privacy/');
 
   assert.deepEqual(report.consoleErrors, []);
+  for (const invalidPath of ['/activity/not-real', '/demo/activity/not-real']) {
+    const invalidResponse = await page.goto(`${baseURL}${invalidPath}`);
+    assert.equal(invalidResponse?.status(), 404);
+    assert.equal(await page.title(), 'Page not found — Linux Learning Station');
+    assert.equal(await page.locator('link[rel="canonical"]').getAttribute('href'), `${canonicalBase}/404`);
+  }
   const notFoundResponse = await page.goto(`${baseURL}/not-a-station-route`);
   assert.equal(notFoundResponse?.status(), 404);
   assert.equal(await page.title(), 'Page not found — Linux Learning Station');
@@ -99,6 +158,14 @@ try {
   assert.ok(await page.getByRole('link', { name: 'Terms' }).count() >= 1);
   await axeSerious(page, '/404');
   report.consoleErrors = report.consoleErrors.filter((message) => !/Failed to load resource: the server responded with a status of 404/.test(message));
+
+  const sitemap = await (await context.request.get(`${baseURL}/sitemap.xml`)).text();
+  for (const id of ['patterns', 'keys', 'logic', 'spelling', 'numbers', 'drawing']) {
+    assert.match(sitemap, new RegExp(`<loc>${canonicalBase}/activity/${id}</loc>`));
+    assert.match(sitemap, new RegExp(`<loc>${canonicalBase}/demo/activity/${id}</loc>`));
+  }
+  report.checks.invalidActivityRoutes = '404 with designed metadata';
+  report.checks.sitemap = 'all 12 activity routes listed';
 
   const externalRequests = report.requests.filter((url) => new URL(url).origin !== new URL(baseURL).origin);
   assert.deepEqual(externalRequests, []);
@@ -137,6 +204,40 @@ try {
   assert.equal(await offlinePage.getByText('3 wins saved').isVisible(), true);
   report.checks.offlineActivity = 'passed';
   await offlineContext.close();
+
+  const sessionContext = await browser.newContext();
+  const sessionPage = await sessionContext.newPage();
+  await sessionPage.goto(`${baseURL}/demo`);
+  await completeCoreSessions(sessionPage);
+  report.checks.sessionShape = 'five guided × three rounds; one saved drawing';
+  await sessionContext.close();
+
+  const licenseContext = await browser.newContext();
+  const licensePage = await licenseContext.newPage();
+  const licenseRequests = [];
+  await licensePage.route('https://api.sociobot.in/api/v1/products/linux-learning-station/verify**', async (route) => {
+    licenseRequests.push(route.request());
+    await route.fulfill({ status: 200, contentType: 'application/json', body: '{"valid":true}' });
+  });
+  await licensePage.goto(`${baseURL}/demo`);
+  await licensePage.getByRole('button', { name: 'Adult tools', exact: true }).click();
+  await licensePage.getByLabel('Paste license token').fill('live-restore-fixture');
+  await licensePage.getByRole('button', { name: 'Verify license' }).click();
+  await licensePage.getByRole('heading', { name: 'Workshop bundle unlocked' }).waitFor();
+  assert.equal(licenseRequests.length, 1);
+  const licenseURL = new URL(licenseRequests[0].url());
+  assert.equal(licenseRequests[0].method(), 'GET');
+  assert.equal(licenseRequests[0].postData(), null);
+  assert.deepEqual([...licenseURL.searchParams.entries()], [['license', 'live-restore-fixture']]);
+  const savedLicense = await licensePage.evaluate(() => ({
+    token: localStorage.getItem('sb_license:linux-learning-station'),
+    verdict: JSON.parse(localStorage.getItem('sb_license_verdict:linux-learning-station') ?? 'null'),
+  }));
+  assert.equal(savedLicense.token, 'live-restore-fixture');
+  assert.equal(savedLicense.verdict.valid, true);
+  await axeSerious(licensePage, '/demo adult tools after restore');
+  report.checks.licenseRestore = 'visible form → token-only request → local token/verdict → unlocked';
+  await licenseContext.close();
 
   assert.deepEqual(report.consoleErrors, []);
   report.checks.status = 'passed';

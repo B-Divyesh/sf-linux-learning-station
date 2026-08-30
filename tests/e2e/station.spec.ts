@@ -34,6 +34,43 @@ test('@claim:six-free-activities demo exposes all six free activities at mobile 
   expect(results.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
 });
 
+test('@claim:core-session-shape five guided activities finish after three rounds and drawing finishes after one save', async ({ page }) => {
+  await page.goto('/demo');
+  const guided = [
+    { name: 'Pattern Quarry', kind: 'option', answers: ['●', '▲', '●'] },
+    { name: 'Key Trail', kind: 'typing', answers: ['quiet keys', 'plants need light', 'I can learn offline.'] },
+    { name: 'Logic Bridges', kind: 'option', answers: ['It is green', 'Cy', '18'] },
+    { name: 'Word Workshop', kind: 'spelling', answers: ['plant', 'bridge', 'book'] },
+    { name: 'Number Stones', kind: 'option', answers: ['8', '6 × 4', '9'] },
+  ];
+
+  for (const activity of guided) {
+    await page.getByRole('button', { name: `Start ${activity.name}` }).click();
+    for (let round = 0; round < 3; round += 1) {
+      await expect(page.getByText(`Round ${round + 1} / 3`)).toBeVisible();
+      if (activity.kind === 'typing') {
+        await page.getByLabel('Your typing').fill(activity.answers[round]);
+        await page.getByRole('button', { name: 'Check typing' }).click();
+      } else if (activity.kind === 'spelling') {
+        await page.getByLabel('Build the word').fill(activity.answers[round]);
+        await page.getByRole('button', { name: 'Check word' }).click();
+      } else {
+        await page.getByRole('button', { name: activity.answers[round], exact: true }).click();
+      }
+      await expect(page.getByRole('heading', { name: 'Good noticing!' })).toBeVisible();
+      await page.getByRole('button', { name: round === 2 ? 'Finish session' : 'Next round' }).click();
+    }
+    await expect(page.getByRole('heading', { name: '30 points saved' })).toBeVisible();
+    await page.getByRole('button', { name: 'Station board' }).click();
+  }
+
+  await page.getByRole('button', { name: 'Start Moss Sketchbook' }).click();
+  await expect(page.locator('.round-meter')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Add dot' }).click();
+  await page.getByRole('button', { name: 'Save this drawing session' }).click();
+  await expect(page.getByRole('heading', { name: '10 points saved' })).toBeVisible();
+});
+
 test('completes a pattern round and stores a win', async ({ page }) => {
   await setup(page);
   await page.getByRole('button', { name: 'Start Pattern Quarry' }).click();
@@ -107,7 +144,7 @@ test('@claim:installable-pwa Chromium accepts the demo as an installable app', a
   const data = JSON.parse(manifest.data ?? '{}');
   expect(data).toMatchObject({
     name: 'Linux Learning Station',
-    start_url: '/?source=pwa&v=1.2.2',
+    start_url: '/?source=pwa&v=1.2.3',
     display: 'standalone',
   });
   expect(data.icons).toEqual(expect.arrayContaining([
@@ -135,6 +172,49 @@ test('real activity deep links survive setup and set route-specific metadata', a
   await expect(page).toHaveTitle('Pattern Quarry — Linux Learning Station');
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://linux-learning-station.sociobot.in/activity/patterns');
   await expect(page.locator('meta[property="og:title"]')).toHaveAttribute('content', 'Pattern Quarry — Linux Learning Station');
+});
+
+test('invalid activity routes return the designed 404 and sitemap lists every valid activity route', async ({ page, request }) => {
+  for (const path of ['/activity/not-real', '/demo/activity/not-real']) {
+    const response = await page.goto(path);
+    expect(response?.status()).toBe(404);
+    await expect(page).toHaveTitle('Page not found — Linux Learning Station');
+    await expect(page.getByRole('heading', { name: 'This page was not found' })).toBeVisible();
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://linux-learning-station.sociobot.in/404');
+    await expect(page.locator('link[rel="canonical"]')).not.toHaveAttribute('href', new RegExp(path));
+  }
+
+  const sitemap = await (await request.get('/sitemap.xml')).text();
+  const routes = ['patterns', 'keys', 'logic', 'spelling', 'numbers', 'drawing'];
+  for (const id of routes) {
+    expect(sitemap).toContain(`<loc>https://linux-learning-station.sociobot.in/activity/${id}</loc>`);
+    expect(sitemap).toContain(`<loc>https://linux-learning-station.sociobot.in/demo/activity/${id}</loc>`);
+  }
+  const config = await (await request.get('/staticwebapp.config.json')).json() as { routes: Array<{ route: string }> };
+  expect(config.routes.some(({ route }) => route === '/activity/*' || route === '/demo/activity/*')).toBe(false);
+  for (const id of routes) {
+    expect(config.routes.some(({ route }) => route === `/activity/${id}`)).toBe(true);
+    expect(config.routes.some(({ route }) => route === `/demo/activity/${id}`)).toBe(true);
+  }
+});
+
+test('demo board keeps all content visible at 200% text size on a 390px screen', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/demo');
+  await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
+  await expect(page.getByLabel('Today: 2 points')).toContainText('Today2points');
+  const geometry = await page.evaluate(() => {
+    const stamp = document.querySelector('.today-stamp')!.getBoundingClientRect();
+    return {
+      clientWidth: document.documentElement.clientWidth,
+      scrollWidth: document.documentElement.scrollWidth,
+      stampLeft: stamp.left,
+      stampRight: stamp.right,
+    };
+  });
+  expect(geometry.scrollWidth).toBeLessThanOrEqual(geometry.clientWidth);
+  expect(geometry.stampLeft).toBeGreaterThanOrEqual(0);
+  expect(geometry.stampRight).toBeLessThanOrEqual(geometry.clientWidth);
 });
 
 test('demo entry and offline status reflect actual service-worker readiness', async ({ page }) => {
@@ -183,6 +263,25 @@ test('@claim:local-only demo activity use does not send data off this origin', a
   expect(requests.every((url) => new URL(url).origin === 'http://127.0.0.1:4173')).toBe(true);
   expect(await page.locator('iframe, [class*="advert"], [id*="chat"]').count()).toBe(0);
   expect(await page.locator('script[src]').evaluateAll((scripts) => scripts.every((script) => new URL((script as HTMLScriptElement).src).origin === location.origin))).toBe(true);
+  const storage = await page.evaluate(async () => {
+    const names = (await indexedDB.databases()).map(({ name }) => name).filter(Boolean);
+    const attempts = await new Promise<unknown[]>((resolve, reject) => {
+      const open = indexedDB.open('linux-learning-station-demo');
+      open.onerror = () => reject(open.error);
+      open.onsuccess = () => {
+        const database = open.result;
+        const read = database.transaction('station').objectStore('station').get('attempts');
+        read.onerror = () => reject(read.error);
+        read.onsuccess = () => { database.close(); resolve(read.result as unknown[]); };
+      };
+    });
+    return { names, attempts, localStorageKeys: Object.keys(localStorage), sessionStorageKeys: Object.keys(sessionStorage) };
+  });
+  expect(storage.names).toContain('linux-learning-station-demo');
+  expect(storage.names).not.toContain('linux-learning-station');
+  expect(storage.attempts).toHaveLength(4);
+  expect(storage.localStorageKeys).toEqual([]);
+  expect(storage.sessionStorageKeys).toEqual([]);
 });
 
 test('@claim:json-export exports and imports complete data but rejects impossible scores', async ({ page }) => {
@@ -263,12 +362,18 @@ test('@claim:update-notice applies a real waiting service worker update and relo
 });
 
 test('@claim:paid-bundle verified license provides five rounds and detailed printouts', async ({ page }) => {
-  await page.addInitScript(() => {
-    localStorage.setItem('sb_license:linux-learning-station', 'test-license');
+  let checks = 0;
+  await page.route('https://api.sociobot.in/api/v1/products/linux-learning-station/verify?license=test-license', async (route) => {
+    checks += 1;
+    await route.fulfill({ status: 200, contentType: 'application/json', body: '{"valid":true}' });
   });
-  await page.route('https://api.sociobot.in/api/v1/products/linux-learning-station/verify?license=test-license', async (route) => route.fulfill({ status: 200, contentType: 'application/json', body: '{"valid":true}' }));
   await page.goto('/demo');
-  await expect.poll(() => page.getByRole('button', { name: 'Start Pattern Quarry' }).count()).toBe(1);
+  await page.getByRole('button', { name: 'Adult tools', exact: true }).click();
+  await page.getByLabel('Paste license token').fill('test-license');
+  await page.getByRole('button', { name: 'Verify license' }).click();
+  await expect(page.getByRole('heading', { name: 'Workshop bundle unlocked' })).toBeVisible();
+  expect(checks).toBe(1);
+  await page.getByRole('button', { name: 'Close adult tools' }).click();
   await page.getByRole('button', { name: 'Start Pattern Quarry' }).click();
   for (const answer of ['●', '▲', '●', '●', '▲']) {
     await page.locator(`[data-action="answer-option"][data-value="${answer}"]`).click();
@@ -279,6 +384,74 @@ test('@claim:paid-bundle verified license provides five rounds and detailed prin
   await page.getByRole('button', { name: 'Adult tools', exact: true }).click();
   await page.emulateMedia({ media: 'print' });
   await expect(page.locator('.print-sheet').getByRole('heading', { name: 'Recent practice' })).toBeVisible();
+});
+
+test('@claim:license-local-storage restoring through Adult tools keeps only the token and verdict in browser license storage', async ({ page }) => {
+  const token = 'local-storage-test-token';
+  await page.route(`https://api.sociobot.in/api/v1/products/linux-learning-station/verify?license=${token}`, async (route) => route.fulfill({ status: 200, contentType: 'application/json', body: '{"valid":true}' }));
+  await page.goto('/demo');
+  await page.getByRole('button', { name: 'Adult tools', exact: true }).click();
+  await page.getByLabel('Paste license token').fill(token);
+  await page.getByRole('button', { name: 'Verify license' }).click();
+  await expect(page.getByRole('heading', { name: 'Workshop bundle unlocked' })).toBeVisible();
+
+  const stored = await page.evaluate(async (expectedToken) => {
+    const tokenKey = 'sb_license:linux-learning-station';
+    const verdictKey = 'sb_license_verdict:linux-learning-station';
+    const verdict = JSON.parse(localStorage.getItem(verdictKey) ?? 'null') as { valid?: boolean; checkedAt?: number } | null;
+    const databaseNames = (await indexedDB.databases()).map(({ name }) => name).filter(Boolean);
+    const databaseText = await new Promise<string>((resolve, reject) => {
+      const open = indexedDB.open('linux-learning-station-demo');
+      open.onerror = () => reject(open.error);
+      open.onsuccess = () => {
+        const database = open.result;
+        const read = database.transaction('station').objectStore('station').getAll();
+        read.onerror = () => reject(read.error);
+        read.onsuccess = () => { database.close(); resolve(JSON.stringify(read.result)); };
+      };
+    });
+    return {
+      token: localStorage.getItem(tokenKey),
+      verdict,
+      licenseKeys: Object.keys(localStorage).filter((key) => key.startsWith('sb_license')),
+      sessionKeys: Object.keys(sessionStorage),
+      databaseNames,
+      databaseContainsToken: databaseText.includes(expectedToken),
+    };
+  }, token);
+  expect(stored.token).toBe(token);
+  expect(stored.verdict?.valid).toBe(true);
+  expect(stored.verdict?.checkedAt).toEqual(expect.any(Number));
+  expect(stored.licenseKeys.sort()).toEqual(['sb_license:linux-learning-station', 'sb_license_verdict:linux-learning-station']);
+  expect(stored.sessionKeys).toEqual([]);
+  expect(stored.databaseNames).toContain('linux-learning-station-demo');
+  expect(stored.databaseContainsToken).toBe(false);
+});
+
+test('@claim:license-request-privacy restoring a license sends only its token and no learning progress', async ({ page }) => {
+  const token = 'opaque-restore-token';
+  const requests: import('@playwright/test').Request[] = [];
+  await page.route('https://api.sociobot.in/api/v1/products/linux-learning-station/verify**', async (route) => {
+    requests.push(route.request());
+    await route.fulfill({ status: 200, contentType: 'application/json', body: '{"valid":true}' });
+  });
+  await page.goto('/demo');
+  await expect(page.getByText('2 wins saved')).toBeVisible();
+  await page.getByRole('button', { name: 'Adult tools', exact: true }).click();
+  await page.getByLabel('Paste license token').fill(token);
+  await page.getByRole('button', { name: 'Verify license' }).click();
+  await expect(page.getByRole('heading', { name: 'Workshop bundle unlocked' })).toBeVisible();
+
+  expect(requests).toHaveLength(1);
+  const sent = requests[0];
+  const url = new URL(sent.url());
+  expect(sent.method()).toBe('GET');
+  expect(sent.postData()).toBeNull();
+  expect(url.origin).toBe('https://api.sociobot.in');
+  expect(url.pathname).toBe('/api/v1/products/linux-learning-station/verify');
+  expect([...url.searchParams.entries()]).toEqual([['license', token]]);
+  expect(sent.headers()['cookie']).toBeUndefined();
+  expect(decodeURIComponent(url.search).toLowerCase()).not.toMatch(/age|answer|drawing|progress|attempt|activity/);
 });
 
 test('@claim:age-ranges opens distinct guided content for each age range', async ({ page }) => {

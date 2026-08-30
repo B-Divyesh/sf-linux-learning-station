@@ -98,7 +98,7 @@ button:disabled { opacity: .58; cursor: not-allowed; box-shadow: none; }
 .empty-note p, .return-note p { flex: 1; margin: 0; }
 .return-note > span:last-child { font-weight: 900; }
 .activity-board { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: var(--line); border-left: var(--line); }
-.activity-slab { position: relative; min-height: 350px; padding: 24px; overflow: visible; border-right: var(--line); border-bottom: var(--line); background: var(--chalk); content-visibility: auto; }
+.activity-slab { position: relative; min-height: 350px; padding: 24px; overflow: visible; border-right: var(--line); border-bottom: var(--line); background: var(--chalk); }
 .activity-slab::after { position: absolute; right: 18px; bottom: 78px; width: 56px; height: 32px; background: var(--moss-light); border: 2px solid var(--ink); border-radius: 52% 32% 48% 35%; content: ""; transform: rotate(-7deg); }
 .tone-sky::after { background: var(--sky); }
 .tone-lichen::after { background: var(--lichen); }
@@ -225,9 +225,9 @@ dialog::backdrop { background: #1d211caa; }
   .age-picker { grid-template-columns: 1fr; }
   .age-slab { min-height: 92px; }
   .age-slab strong { margin-bottom: 4px; }
-  .intro-block { align-items: center; }
+  .intro-block { align-items: flex-start; flex-direction: column; gap: 16px; }
   .intro-block .lede { display: none; }
-  .today-stamp { flex-basis: 92px; }
+  .today-stamp { width: min(100%, 180px); transform: none; }
   .activity-board { grid-template-columns: 1fr; }
   .step-list, .limits-section { grid-template-columns: 1fr; }
   .activity-slab { min-height: 315px; }

@@ -17,7 +17,7 @@ Live product: <https://linux-learning-station.sociobot.in>
 - Six free core activities. A valid ₹499 one-time workshop license adds five-round sessions and detailed week printouts.
 - A one-click `/demo` station with sample progress, Reset demo, and Start for real controls
 
-Core activities have no analytics, ads, chat, child account, cloud profile, or code loaded from other sites. New licenses are not for sale now. Existing licenses can be restored in Adult tools.
+Core activities have no analytics, ads, chat, child account, cloud profile, or code loaded from other sites. New licenses are not for sale now. Adults can restore a valid existing license in Adult tools.
 
 ## Try the demo
 
