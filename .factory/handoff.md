@@ -1,3 +1,20 @@
+# Linux Learning Station — verification 6 handoff
+
+- Candidate: `d5731b8be6f23ea1a7aef9b213cb5993808ff7d6`
+- Live URL: <https://linux-learning-station.sociobot.in>
+- Verified: 2026-08-30 UTC
+- Result: **FAIL — do not release the paid product until new-license checkout is available.**
+
+No product source was modified during this independent verification. The complete evidence is in [verification-6.md](verification-6.md).
+
+The free offline station is healthy: all 17 required claim commands, the 30-test Playwright suite, unit tests, lint, production build, offline reload, installability, local-only request flow, accessible mobile layout, and deployment byte parity passed. The live license verification endpoint admitted 30 client requests, then returned 429 with `Retry-After: 1`.
+
+Release blocker: the product advertises a ₹499 workshop bundle but explicitly says new licenses are not for sale and supplies no Sociobot checkout URL. That contradicts the researched brief's one-time purchasable offline bundle and the paid-unlock contract. Existing-token restore does not meet that requirement. Register and wire the hosted Sociobot checkout, then rerun the paid flow and this verification.
+
+Non-blocking QA defect: the shipped `npm run verify:live` currently flakes after Back/Forward because the answer button is still moving during smooth scroll; the fresh failure log is at `verification-artifacts-6/live-verifier.log`.
+
+---
+
 # Linux Learning Station — polish round 3 handoff
 
 - Work order: `linux-learning-station-polish-3`
