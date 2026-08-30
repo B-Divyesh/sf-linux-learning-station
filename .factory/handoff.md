@@ -1,28 +1,65 @@
-# Linux Learning Station — adversarial review 3 handoff
+# Linux Learning Station — polish round 3 handoff
 
-- Work order: `linux-learning-station-review-3`
-- Reviewed commit/live build: `8b52f8e103103166e235b74006fb2e8d54bf76f4`
-- Result: **FAIL**
-- Product code changed: no
+- Work order: `linux-learning-station-polish-3`
+- Released candidate: `ba626cd6f56f9b14b882a40a5ed64d1e2b90a53e`
+- Adversarial report commit: `4d233475779382523940300c0717df7168b6de35`
+- Verified repair commit: `740b537d81f40e10d5397bc9b2a0b72a25d183ab`
+- Product version: `v1.2.3`
+- Live URL: <https://linux-learning-station.sociobot.in>
+- Azure Static Web Apps deployment: `c286e4cf-b709-4424-92cf-b8034203079c`
+- Result: **PASS — no known open finding**
 
-## What was done
+## What changed
 
-Completed a cold 390×844 and 1440×900 first read, full landing/README copy audit, one-click demo and reset/exit isolation checks, all listed claim tests from a clean clone, privacy request logging, offline use, installability, valid and invalid route checks, metadata and link crawling, keyboard route focus, 200% text sizing, live axe checks, visual-identity review, prior-finding verification, and clean-clone quality gates.
+All findings in `review-1.md`, `review-2.md`, `review-3.md`, `polish-1.md`, and `polish-2.md` were rechecked. The complete finding-by-finding evidence map is in `polish-3.md`.
 
-The full evidence and exact fixes are in [review-3.md](review-3.md).
+- Replaced wildcard activity rewrites with explicit routes for all six real and six demo activities. Invalid activity slugs now return the designed HTTP 404 and `/404` canonical.
+- Kept the first screen plain and direct, with the sample-data action and all four facts visible at 390×844.
+- Preserved the isolated `/?demo=1` flow, persistent banner, reset, and discard-on-exit behavior. Demo timestamps now stay relative to the visit.
+- Made the mobile demo intro reflow at 200% text size. The page remains 390 px wide, and the full progress stamp stays inside the viewport width.
+- Added the missing session-shape claim and completed three rounds in each guided activity plus one saved drawing in its test.
+- Removed unproved merchant, refund, and revocation statements. Earlier-purchase questions now point to support.
+- Changed paid-bundle verification to start through the visible Adult tools restore form. Added separate storage and token-only request privacy claims.
+- Added all 12 activity routes to `sitemap.xml` and a route/sitemap regression.
+- Updated the catalog description to a 105-character verb-first sentence and refreshed the landing copy audit.
+- Bumped the manifest, service-worker cache, package, and visible footer to `v1.2.3` without changing the concrete-and-moss visual thesis.
 
-## Verification summary
+## Clean-clone evidence
 
-- All 14 exact `.factory/claims.json` commands passed independently.
-- `npm test` passed: 4 unit tests and 25 Playwright tests.
-- `npm run lint`, `npm run build`, and `npm audit --omit=dev` passed.
-- The factory URL verifier passed; the live Playwright axe sweep and axe CLI found no serious/critical violations at normal text size.
-- The live deployment matches the clean-clone build by SHA-256 for HTML, service worker, manifest, JavaScript, and CSS.
+A new clone of remote `main` resolved to `740b537d81f40e10d5397bc9b2a0b72a25d183ab` with a clean status before installation.
 
-## Open findings
+- `npm ci`: passed; 61 packages installed; zero audit findings.
+- Every one of the 17 exact commands in `.factory/claims.json`: passed independently from that clone.
+- `npm test`: passed — 4 unit tests and 30 Playwright tests.
+- `npm run lint`: passed.
+- `npm run build`: passed and produced `dist/index.html`.
+- `npm audit --omit=dev`: passed with zero vulnerabilities.
+- Build sizes: JavaScript 35.21 KB raw / 12.35 KB gzip; CSS 18.98 KB raw / 4.99 KB gzip; no downloaded fonts.
 
-Eleven findings remain. Blocking items are invalid activity slugs returning misleading HTTP 200 pages, clipped demo content at 200% text size, and the still-unlisted/unproved three-round session claim. Additional findings cover unlisted merchant, refund, revocation, license-storage, license-request privacy, third-party-request, and restore-workflow claims, plus an incomplete sitemap.
+The browser suite covers all activity completion paths, three-round sessions, drawing, offline save/reload, installability, a real worker update, demo isolation, import/export boundaries, erasure, print, keyboard/pointer/touch, route focus, valid and invalid routing, 200% text, license restore/storage/request privacy, and axe scans.
 
-## Next verification
+## Live evidence after deployment
 
-After repairs, rerun every claim command from a clean clone. Recheck `/activity/not-real` and `/demo/activity/not-real`, `/demo` at 390×844 with 200% root text, the Adult tools restore form with recorded requests, the complete route inventory against `sitemap.xml`, and every earlier finding listed in review 3.
+- `npm run verify:live`: passed from fresh browser contexts. It reports zero console errors, no third-party requests during core use, minimum target 44 px, zero Chromium installability errors, offline activity save success, full session-shape success, and UI license restoration success.
+- Invalid `/activity/not-real` and `/demo/activity/not-real` return HTTP 404 with the designed 404 title and `/404` canonical.
+- All 12 valid activity routes return 200 with their correct title, canonical, one h1, and main landmark. Root, demo, Privacy, and Terms links all resolve to 200.
+- Deployed SHA-256 values match local `dist/` for `index.html`, `sw.js`, `manifest.webmanifest`, hashed JavaScript, and hashed CSS.
+- Security headers include CSP with response-header `frame-ancestors 'none'`, `X-Content-Type-Options`, `Referrer-Policy`, and `Permissions-Policy`.
+- `/opt/fleet/lib/verify-url.sh`: passed with the expected title, `lang=en`, one h1, main landmark, complete image alt coverage, labeled buttons, and zero console errors.
+- Playwright axe integration found zero serious or critical issues on landing, demo, Adult tools after license restore, Privacy, Terms, activities, and the designed 404.
+- Lighthouse mobile: Performance 100, Accessibility 100, Best Practices 100, SEO 100; FCP 1.0 s, LCP 1.4 s, TBT 0 ms, CLS 0.
+
+Evidence files:
+
+- `.factory/polish-3-live/live-check.json`
+- `.factory/polish-3-live/live-cold-mobile.png`
+- `.factory/polish-3-live/live-demo-mobile.png`
+- `.factory/polish-3-live/live-demo-200-percent.png`
+- `.factory/polish-3-verify/verify.json`
+- `.factory/polish-3-verify/screenshot-desktop.png`
+- `.factory/polish-3-verify/screenshot-mobile.png`
+- `.factory/polish-3-lighthouse.json`
+
+## Known gaps and next steps
+
+No product, claim, accessibility, privacy, offline, routing, mobile, metadata, or deployment gap remains from the cumulative reviews. New license sales intentionally remain unavailable, and the UI makes no checkout promise or purchase action.

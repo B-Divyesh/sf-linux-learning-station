@@ -3,7 +3,7 @@
 - Work order: `linux-learning-station-polish-3`
 - Released candidate: `ba626cd6f56f9b14b882a40a5ed64d1e2b90a53e`
 - Review report commit: `4d233475779382523940300c0717df7168b6de35`
-- Repair commit: `b603ffb`
+- Repair commits: `b603ffb`, `740b537`
 - Product build: `v1.2.3`
 - Live URL: <https://linux-learning-station.sociobot.in>
 
@@ -68,6 +68,6 @@ Evidence paths used below are [the cold first screen](polish-3-live/live-cold-mo
 - `.factory/claims.json` now has 17 entries. A source check confirms exactly one `@claim:<id>` test per entry.
 - `npm test` passes 4 unit tests and 30 Playwright tests. The suite includes axe, keyboard/focus, offline, privacy, 200% text, 404, update, import, and installability coverage.
 - `npm run lint`, `npm run build`, and `npm audit --omit=dev` pass. The build emits `dist/index.html`; JavaScript is 35.17 KB raw / 12.33 KB gzip and CSS is 18.98 KB raw / 4.99 KB gzip.
-- Local Lighthouse mobile: Performance 100, Accessibility 100, Best Practices 100, SEO 100; FCP 0.9 s, LCP 1.8 s, TBT 0 ms, CLS 0.
+- Live Lighthouse mobile: Performance 100, Accessibility 100, Best Practices 100, SEO 100; FCP 1.0 s, LCP 1.4 s, TBT 0 ms, CLS 0.
 - The workbench’s concrete, moss, lichen, heavy-rule, and offset-shadow identity is unchanged. The original documented station image remains the only hero art.
 - A clean-clone run crossing UTC midnight exposed stale fixed demo dates. The seed now keeps its two wins on the previous day and its two-point practice on the current day, so **Today** remains truthful.
