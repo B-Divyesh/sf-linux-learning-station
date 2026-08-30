@@ -1,0 +1,76 @@
+{
+  "checkedAt": "2026-08-30T03:00:13.098Z",
+  "base": "http://127.0.0.1:4173",
+  "checks": {
+    "axe:/": 0,
+    "firstScreen": {
+      "factsBottom": 769.640625,
+      "title": "Linux Learning Station — offline activities for ages 5–10",
+      "skipFirst": true
+    },
+    "axe:/?demo=1": 0,
+    "demo": {
+      "banner": true,
+      "activities": 6,
+      "stores": {
+        "indexedDB": [
+          "linux-learning-station",
+          "linux-learning-station-demo"
+        ],
+        "realRecords": [],
+        "demoRecords": [
+          [
+            {
+              "id": "demo-pattern",
+              "activity": "patterns",
+              "correct": true,
+              "points": 10,
+              "detail": "Solved a shape pattern",
+              "createdAt": "2026-08-29T10:00:00.000Z"
+            },
+            {
+              "id": "demo-keys",
+              "activity": "keys",
+              "correct": true,
+              "points": 10,
+              "detail": "Typed a trail carefully",
+              "createdAt": "2026-08-29T10:03:00.000Z"
+            },
+            {
+              "id": "demo-numbers",
+              "activity": "numbers",
+              "correct": false,
+              "points": 2,
+              "detail": "Practised number stones",
+              "createdAt": "2026-08-30T09:15:00.000Z"
+            }
+          ],
+          {
+            "ageBand": "7–8",
+            "setupDone": true,
+            "sound": false
+          }
+        ],
+        "local": [],
+        "session": []
+      }
+    },
+    "textResize": {
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "stamp": {
+        "left": 16,
+        "right": 196
+      }
+    },
+    "axe:/privacy/": 0,
+    "axe:/terms/": 0,
+    "axe:/offline.html": 0,
+    "axe:/activity/not-real": 0,
+    "axe:/demo/activity/not-real": 0,
+    "axe:/not-a-route": 0,
+    "routing": "legal/offline metadata and designed invalid-route 404 passed",
+    "offline": "controlled reload and saved activity passed"
+  },
+  "consoleErrors": []
+}

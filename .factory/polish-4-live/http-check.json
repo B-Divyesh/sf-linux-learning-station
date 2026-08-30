@@ -1,0 +1,149 @@
+{
+  "checkedAt": "2026-08-30T03:10:07.295Z",
+  "base": "https://linux-learning-station.sociobot.in",
+  "statuses": {
+    "/": 200,
+    "/?demo=1": 200,
+    "/demo": 200,
+    "/privacy/": 200,
+    "/terms/": 200,
+    "/offline.html": 200,
+    "/activity/patterns": 200,
+    "/demo/activity/patterns": 200,
+    "/activity/keys": 200,
+    "/demo/activity/keys": 200,
+    "/activity/logic": 200,
+    "/demo/activity/logic": 200,
+    "/activity/spelling": 200,
+    "/demo/activity/spelling": 200,
+    "/activity/numbers": 200,
+    "/demo/activity/numbers": 200,
+    "/activity/drawing": 200,
+    "/demo/activity/drawing": 200,
+    "/activity/not-real": 404,
+    "/demo/activity/not-real": 404,
+    "/not-a-station-route": 404
+  },
+  "headers": {
+    "content-security-policy": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' https://api.sociobot.in; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
+    "x-content-type-options": "nosniff",
+    "referrer-policy": "strict-origin-when-cross-origin",
+    "permissions-policy": "camera=(), microphone=(), geolocation=()",
+    "strict-transport-security": "max-age=10886400; includeSubDomains; preload"
+  },
+  "checkout": {
+    "status": 303,
+    "redirectOrigin": "https://checkout.dodopayments.com"
+  },
+  "parity": {
+    "index.html": {
+      "local": "fa7eb1b8887cc46d289b58b33ad5a93ac7952d6d5127150806f89f30fa34cce1",
+      "remote": "fa7eb1b8887cc46d289b58b33ad5a93ac7952d6d5127150806f89f30fa34cce1",
+      "match": true
+    },
+    "sw.js": {
+      "local": "8ec5b504c6d7d4acad9b841f2ce5cafd5434de3d5fe1ef82fd47640f69275043",
+      "remote": "8ec5b504c6d7d4acad9b841f2ce5cafd5434de3d5fe1ef82fd47640f69275043",
+      "match": true
+    },
+    "manifest.webmanifest": {
+      "local": "4993b1cac521811bc04a6bc70e3329b5cda15ffacebe93b19eb57f40cdeeae18",
+      "remote": "4993b1cac521811bc04a6bc70e3329b5cda15ffacebe93b19eb57f40cdeeae18",
+      "match": true
+    },
+    "404.html": {
+      "local": "9bfda1b602abab12eeecc0163ca625a8a0cbdb6039833b121e91fe9d16945fec",
+      "remote": "9bfda1b602abab12eeecc0163ca625a8a0cbdb6039833b121e91fe9d16945fec",
+      "match": true
+    },
+    "offline.html": {
+      "local": "af7ab1c240f151af290b1098fc435a3c36f415e8c1205838d630813f261ea87a",
+      "remote": "af7ab1c240f151af290b1098fc435a3c36f415e8c1205838d630813f261ea87a",
+      "match": true
+    },
+    "legal.css": {
+      "local": "b378ea755339dde44bcea2809acd22c006d3083d4a17d52aa4c831cae7ae34c9",
+      "remote": "b378ea755339dde44bcea2809acd22c006d3083d4a17d52aa4c831cae7ae34c9",
+      "match": true
+    },
+    "privacy/index.html": {
+      "local": "65fbc9f6ee0abc269ada1a9d223245830b75023744a09f509312097ac5d74d5b",
+      "remote": "65fbc9f6ee0abc269ada1a9d223245830b75023744a09f509312097ac5d74d5b",
+      "match": true
+    },
+    "terms/index.html": {
+      "local": "3a7a2ffb0f24b71a029e1055d490294af623e90edb4bcf1c80152bdfe5c13212",
+      "remote": "3a7a2ffb0f24b71a029e1055d490294af623e90edb4bcf1c80152bdfe5c13212",
+      "match": true
+    },
+    "robots.txt": {
+      "local": "82dada24c434d6bfdc480979344b6e3ac18b772bf52d0db99880fff6eec6861c",
+      "remote": "82dada24c434d6bfdc480979344b6e3ac18b772bf52d0db99880fff6eec6861c",
+      "match": true
+    },
+    "sitemap.xml": {
+      "local": "89759bd56ccc73ba6dc435d595fecc36efa9c58667de3f7db579aec23cfa9708",
+      "remote": "89759bd56ccc73ba6dc435d595fecc36efa9c58667de3f7db579aec23cfa9708",
+      "match": true
+    },
+    "assets/station-hero.webp": {
+      "local": "e1ecf83f80d2b0dd831999579659ada86083ef5f3bb0cf2ae9879b59a069ee36",
+      "remote": "e1ecf83f80d2b0dd831999579659ada86083ef5f3bb0cf2ae9879b59a069ee36",
+      "match": true
+    },
+    "assets/social-card.webp": {
+      "local": "b4c1a22cf6108d3e7f551a867351d325eea7cf0730c3d69943aab54282d054f5",
+      "remote": "b4c1a22cf6108d3e7f551a867351d325eea7cf0730c3d69943aab54282d054f5",
+      "match": true
+    },
+    "assets/station-mark.svg": {
+      "local": "fac97383ff07d025004436ac59d1cda6f1a88a0c100ed033d33e678af53debab",
+      "remote": "fac97383ff07d025004436ac59d1cda6f1a88a0c100ed033d33e678af53debab",
+      "match": true
+    },
+    "assets/icon-192.png": {
+      "local": "e11f3887f8f6676606286703054517b0a7d0e02545562a294276e2c70fd00229",
+      "remote": "e11f3887f8f6676606286703054517b0a7d0e02545562a294276e2c70fd00229",
+      "match": true
+    },
+    "assets/icon-512.png": {
+      "local": "d271a4dfbbfd7a0b1881ea3753bec4776cc8a240ad5f4db51acbfabbd873a3ed",
+      "remote": "d271a4dfbbfd7a0b1881ea3753bec4776cc8a240ad5f4db51acbfabbd873a3ed",
+      "match": true
+    },
+    "assets/index-36A5KsOW.js": {
+      "local": "c6e485111d28f8c1a220c0f57a182350f2ededa071ff2c018ed6c681f4f3ae31",
+      "remote": "c6e485111d28f8c1a220c0f57a182350f2ededa071ff2c018ed6c681f4f3ae31",
+      "match": true
+    },
+    "assets/style-B4DvgqcO.css": {
+      "local": "0c0356fdaf9947a0149951d7d89d59e30b07fc35f9bbbdbc74e9e9a15ae655d0",
+      "remote": "0c0356fdaf9947a0149951d7d89d59e30b07fc35f9bbbdbc74e9e9a15ae655d0",
+      "match": true
+    }
+  },
+  "claimTags": {
+    "six-free-activities": 1,
+    "core-session-shape": 1,
+    "offline-reload": 1,
+    "installable-pwa": 1,
+    "demo-sandbox": 1,
+    "local-only": 1,
+    "json-export": 1,
+    "erase-progress": 1,
+    "printable-code": 1,
+    "input-paths": 1,
+    "update-notice": 1,
+    "paid-bundle": 1,
+    "license-local-storage": 1,
+    "license-request-privacy": 1,
+    "daily-license-check": 1,
+    "age-ranges": 1,
+    "checkout-purchase": 1
+  },
+  "catalog": {
+    "text": "Start six offline activities for ages 5–10 on a shared Linux computer, with progress kept in the browser.",
+    "characters": 105
+  },
+  "result": "passed"
+}

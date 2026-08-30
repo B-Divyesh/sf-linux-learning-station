@@ -138,6 +138,21 @@ try {
   assert.equal(await page.title(), 'Pattern Quarry — Linux Learning Station');
   assert.equal(await page.locator('link[rel="canonical"]').getAttribute('href'), `${canonicalBase}/activity/patterns`);
   report.checks.realDeepLink = 'setup preserved /activity/patterns';
+  const activityAdultTools = page.getByRole('button', { name: 'Open adult tools', exact: true });
+  await activityAdultTools.click();
+  assert.equal(await page.getByRole('heading', { name: 'Station controls' }).isVisible(), true);
+  assert.equal(await page.locator('.print-sheet').count(), 1);
+  await page.getByRole('button', { name: 'Close adult tools' }).click();
+  assert.equal(await activityAdultTools.evaluate((node) => node === document.activeElement), true);
+  report.checks.activityAdultTools = 'footer action opens controls and returns focus';
+  await page.locator('[data-action="answer-option"][data-value="●"]').click();
+  await page.getByRole('button', { name: 'Station board' }).click();
+  assert.equal(await page.getByText('1 win saved', { exact: true }).isVisible(), true);
+  await page.getByRole('button', { name: 'Start Logic Bridges' }).click();
+  await page.getByRole('button', { name: 'It is green', exact: true }).click();
+  await page.getByRole('button', { name: 'Station board' }).click();
+  assert.equal(await page.getByText('2 wins saved', { exact: true }).isVisible(), true);
+  report.checks.winGrammar = '1 win saved; 2 wins saved';
 
   await page.goto(`${baseURL}/terms/`);
   assert.equal(await page.getByText('You may install the station on devices you control').isVisible(), true);
