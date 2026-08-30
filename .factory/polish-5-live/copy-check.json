@@ -1,0 +1,14 @@
+{
+  "url": "https://linux-learning-station.sociobot.in",
+  "coldContext": true,
+  "checks": {
+    "landingWorkshopFact": true,
+    "landingWorkshopHeading": true,
+    "landingWorkshopAction": true,
+    "landingPlainPrivacy": true,
+    "landingLegacyTermsAbsent": true,
+    "adultWorkshopBundle": true,
+    "privacyWorkshopBundle": true,
+    "termsWorkshopBundle": true
+  }
+}

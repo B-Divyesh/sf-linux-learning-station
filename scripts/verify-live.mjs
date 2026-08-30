@@ -5,7 +5,7 @@ import AxeBuilder from '@axe-core/playwright';
 
 const baseURL = process.env.VERIFY_URL ?? 'https://linux-learning-station.sociobot.in';
 const canonicalBase = 'https://linux-learning-station.sociobot.in';
-const evidenceDir = '.factory/polish-4-live';
+const evidenceDir = '.factory/polish-5-live';
 const activityNames = ['Pattern Quarry', 'Key Trail', 'Logic Bridges', 'Word Workshop', 'Number Stones', 'Moss Sketchbook'];
 const checkoutFixture = JSON.parse(await readFile('tests/fixtures/checkout-session.json', 'utf8'));
 await mkdir(evidenceDir, { recursive: true });
@@ -67,6 +67,7 @@ try {
   assert.equal(await page.locator('html').getAttribute('lang'), 'en');
   assert.equal(await page.title(), 'Linux Learning Station — offline activities for ages 5–10');
   assert.equal(await page.getByRole('button', { name: 'Try it with sample data' }).isVisible(), true);
+  assert.equal(await page.getByText('Workshop bundle: ₹499 once', { exact: true }).isVisible(), true);
   const checkoutHref = await page.getByRole('link', { name: 'Buy workshop bundle — ₹499' }).getAttribute('href');
   assert.equal(checkoutHref, checkoutFixture.checkoutEndpoint);
   assert.deepEqual(checkoutFixture.offer, { name: 'Workshop bundle', currency: 'INR', amountMinor: 49900, billing: 'one_time' });
