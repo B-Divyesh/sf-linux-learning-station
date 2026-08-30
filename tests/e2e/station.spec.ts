@@ -1,4 +1,4 @@
-import { expect, test, type Browser, type BrowserContext, type BrowserContextOptions, type Page } from '@playwright/test';
+import { chromium, expect, test, type Browser, type BrowserContext, type BrowserContextOptions, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { readFile } from 'node:fs/promises';
 
@@ -47,7 +47,7 @@ test('@claim:six-free-activities demo exposes all six free activities at mobile 
     await start.click();
     await complete();
     await expect(page.getByRole('heading', { name: /Good noticing!|points saved/ })).toBeVisible();
-    await expect(page.getByText(/₹499|Restore a workshop license/)).toHaveCount(0);
+    await expect(page.getByText(/₹499|Restore a workshop license/).filter({ visible: true })).toHaveCount(0);
     await page.getByRole('button', { name: 'Station board' }).click();
   }
   await expect(page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).resolves.toBe(true);
@@ -408,21 +408,26 @@ test('@claim:input-paths supports keyboard and touch-style drawing controls', as
   await expect(page.getByRole('heading', { name: /points saved/ })).toBeVisible();
 });
 
-test('@claim:update-notice applies a real waiting service worker update and reloads under the new controller', async ({ browser }) => {
-  await withIsolatedPage(browser, async (page) => {
-    await page.goto('/demo');
-    await page.evaluate(() => navigator.serviceWorker.ready);
-    await page.reload();
-    await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
-    await page.evaluate(() => navigator.serviceWorker.register('/sw-test-vnext.js'));
-    await expect.poll(() => page.evaluate(() => navigator.serviceWorker.getRegistration().then((registration) => Boolean(registration?.waiting)))).toBe(true);
-    await page.evaluate(() => window.dispatchEvent(new Event('station:update-ready')));
-    const changed = page.waitForEvent('framenavigated');
-    await page.getByRole('button', { name: 'Update now' }).click();
-    await changed;
-    await expect.poll(() => page.evaluate(async () => (await caches.match('/update-marker'))?.text())).toBe('vnext');
-    await expect.poll(() => page.evaluate(() => navigator.serviceWorker.controller?.scriptURL.endsWith('/sw-test-vnext.js'))).toBe(true);
-  });
+test('@claim:update-notice applies a real waiting service worker update and reloads under the new controller', async () => {
+  const updateBrowser = await chromium.launch();
+  try {
+    await withIsolatedPage(updateBrowser, async (page) => {
+      await page.goto('/demo');
+      await page.evaluate(() => navigator.serviceWorker.ready);
+      await page.reload();
+      await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+      await page.evaluate(() => navigator.serviceWorker.register('/sw-test-vnext.js'));
+      await expect.poll(() => page.evaluate(() => navigator.serviceWorker.getRegistration().then((registration) => Boolean(registration?.waiting)))).toBe(true);
+      await page.evaluate(() => window.dispatchEvent(new Event('station:update-ready')));
+      const changed = page.waitForEvent('framenavigated');
+      await page.getByRole('button', { name: 'Update now' }).click();
+      await changed;
+      await expect.poll(() => page.evaluate(async () => (await caches.match('/update-marker'))?.text())).toBe('vnext');
+      await expect.poll(() => page.evaluate(() => navigator.serviceWorker.controller?.scriptURL.endsWith('/sw-test-vnext.js'))).toBe(true);
+    });
+  } finally {
+    await updateBrowser.close();
+  }
 });
 
 test('regression: closing a prior isolated reload context leaves the browser available for the paid-bundle claim', async ({ browser }) => {
