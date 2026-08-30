@@ -1,5 +1,26 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Browser, type BrowserContext, type BrowserContextOptions, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+
+const TEST_BASE_URL = 'http://127.0.0.1:4173';
+
+/**
+ * Reload, offline, and license scenarios must never mutate the runner-owned
+ * context. Closing that shared browser makes the following test fail before it
+ * can exercise its claim. Only this disposable context is closed.
+ */
+async function withIsolatedPage<T>(
+  browser: Browser,
+  run: (page: Page, context: BrowserContext) => Promise<T>,
+  options?: BrowserContextOptions,
+): Promise<T> {
+  const context = await browser.newContext({ baseURL: TEST_BASE_URL, ...options });
+  const page = await context.newPage();
+  try {
+    return await run(page, context);
+  } finally {
+    await context.close();
+  }
+}
 
 async function setup(page: import('@playwright/test').Page, age = '7–8') {
   await page.goto('/');
@@ -108,49 +129,53 @@ test('adult tools expose local data and legal controls', async ({ page }) => {
   await expect(page.getByLabel('Legal').getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', '/privacy/');
 });
 
-test('@claim:offline-reload demo station completes and saves activity while fully offline after first visit', async ({ page, context }) => {
-  await page.goto('/demo');
-  await page.evaluate(() => navigator.serviceWorker.ready);
-  await page.reload();
-  await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
-  await expect(page.evaluate(async () => {
-    const script = document.querySelector<HTMLScriptElement>('script[type="module"]')?.src;
-    const names = await caches.keys();
-    return Boolean(script && await Promise.all(names.map(async (name) => caches.open(name).then((cache) => cache.match(script)))).then((matches) => matches.some(Boolean)));
-  })).resolves.toBe(true);
-  await context.setOffline(true);
-  await page.reload();
-  await expect(page.getByRole('heading', { name: 'Choose an activity' })).toBeVisible();
-  await expect(page.getByText(/working offline/i)).toBeVisible();
-  await page.getByRole('button', { name: 'Start Pattern Quarry' }).click();
-  await page.locator('[data-action="answer-option"][data-value="●"]').click();
-  await expect(page.getByRole('heading', { name: 'Good noticing!' })).toBeVisible();
-  await page.getByRole('button', { name: 'Station board' }).click();
-  await expect(page.getByText('3 wins saved')).toBeVisible();
+test('@claim:offline-reload demo station completes and saves activity while fully offline after first visit', async ({ browser }) => {
+  await withIsolatedPage(browser, async (page, context) => {
+    await page.goto('/demo');
+    await page.evaluate(() => navigator.serviceWorker.ready);
+    await page.reload();
+    await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+    await expect(page.evaluate(async () => {
+      const script = document.querySelector<HTMLScriptElement>('script[type="module"]')?.src;
+      const names = await caches.keys();
+      return Boolean(script && await Promise.all(names.map(async (name) => caches.open(name).then((cache) => cache.match(script)))).then((matches) => matches.some(Boolean)));
+    })).resolves.toBe(true);
+    await context.setOffline(true);
+    await page.reload();
+    await expect(page.getByRole('heading', { name: 'Choose an activity' })).toBeVisible();
+    await expect(page.getByText(/working offline/i)).toBeVisible();
+    await page.getByRole('button', { name: 'Start Pattern Quarry' }).click();
+    await page.locator('[data-action="answer-option"][data-value="●"]').click();
+    await expect(page.getByRole('heading', { name: 'Good noticing!' })).toBeVisible();
+    await page.getByRole('button', { name: 'Station board' }).click();
+    await expect(page.getByText('3 wins saved')).toBeVisible();
+  });
 });
 
-test('@claim:installable-pwa Chromium accepts the demo as an installable app', async ({ page }) => {
-  await page.goto('/demo');
-  await page.evaluate(() => navigator.serviceWorker.ready);
-  await page.reload();
-  await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+test('@claim:installable-pwa Chromium accepts the demo as an installable app', async ({ browser }) => {
+  await withIsolatedPage(browser, async (page, context) => {
+    await page.goto('/demo');
+    await page.evaluate(() => navigator.serviceWorker.ready);
+    await page.reload();
+    await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
 
-  const session = await page.context().newCDPSession(page);
-  const manifest = await session.send('Page.getAppManifest');
-  const installability = await session.send('Page.getInstallabilityErrors');
-  expect(manifest.errors).toEqual([]);
-  expect(installability.installabilityErrors).toEqual([]);
+    const session = await context.newCDPSession(page);
+    const manifest = await session.send('Page.getAppManifest');
+    const installability = await session.send('Page.getInstallabilityErrors');
+    expect(manifest.errors).toEqual([]);
+    expect(installability.installabilityErrors).toEqual([]);
 
-  const data = JSON.parse(manifest.data ?? '{}');
-  expect(data).toMatchObject({
-    name: 'Linux Learning Station',
-    start_url: '/?source=pwa&v=1.2.4',
-    display: 'standalone',
+    const data = JSON.parse(manifest.data ?? '{}');
+    expect(data).toMatchObject({
+      name: 'Linux Learning Station',
+      start_url: '/?source=pwa&v=1.2.4',
+      display: 'standalone',
+    });
+    expect(data.icons).toEqual(expect.arrayContaining([
+      expect.objectContaining({ sizes: '192x192', purpose: 'any' }),
+      expect.objectContaining({ sizes: '512x512', purpose: 'any maskable' }),
+    ]));
   });
-  expect(data.icons).toEqual(expect.arrayContaining([
-    expect.objectContaining({ sizes: '192x192', purpose: 'any' }),
-    expect.objectContaining({ sizes: '512x512', purpose: 'any maskable' }),
-  ]));
 });
 
 test('privacy and terms are real standalone pages', async ({ page }) => {
@@ -217,41 +242,45 @@ test('demo board keeps all content visible at 200% text size on a 390px screen',
   expect(geometry.stampRight).toBeLessThanOrEqual(geometry.clientWidth);
 });
 
-test('demo entry and offline status reflect actual service-worker readiness', async ({ page }) => {
-  await page.goto('/?demo=1');
-  await expect(page.getByLabel('Demo mode')).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Choose an activity' })).toBeVisible();
-  await expect.poll(() => page.locator('#connection-status').textContent()).toMatch(/Ready offline|Online/);
-  await page.reload();
-  await expect.poll(() => page.locator('#connection-status').textContent()).toContain('Ready offline');
+test('demo entry and offline status reflect actual service-worker readiness', async ({ browser }) => {
+  await withIsolatedPage(browser, async (page) => {
+    await page.goto('/?demo=1');
+    await expect(page.getByLabel('Demo mode')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Choose an activity' })).toBeVisible();
+    await expect.poll(() => page.locator('#connection-status').textContent()).toMatch(/Ready offline|Online/);
+    await page.reload();
+    await expect.poll(() => page.locator('#connection-status').textContent()).toContain('Ready offline');
+  });
 });
 
-test('@claim:demo-sandbox discards changed sample progress on exit and keeps it out of real data', async ({ page, context }) => {
-  await page.goto('/');
-  await page.getByRole('button', { name: 'Try it with sample data' }).click();
-  await expect(page).toHaveURL(/\?demo=1$/);
-  await expect(page.getByLabel('Demo mode')).toContainText('Demo — sample data, nothing is saved');
-  await expect(page.getByRole('heading', { name: 'Choose an activity' })).toBeVisible();
-  await expect(page.getByText('2 wins saved')).toBeVisible();
-  await page.getByRole('button', { name: 'Start Pattern Quarry' }).click();
-  await expect(page).toHaveURL(/\/demo\/activity\/patterns$/);
-  await expect(page.getByLabel('Demo mode')).toBeVisible();
-  await page.locator('[data-action="answer-option"][data-value="●"]').click();
-  await expect(page.getByRole('heading', { name: 'Good noticing!' })).toBeVisible();
-  await page.getByRole('button', { name: 'Station board' }).click();
-  await expect(page.getByText('3 wins saved')).toBeVisible();
-  await page.evaluate(() => navigator.serviceWorker.ready);
-  await page.reload();
-  await context.setOffline(true);
-  await page.reload();
-  await expect(page.getByLabel('Demo mode')).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Choose an activity' })).toBeVisible();
-  await context.setOffline(false);
-  await page.getByRole('button', { name: 'Start for real' }).click();
-  await expect(page).toHaveURL(/\/$/);
-  await expect(page.getByRole('heading', { name: 'Start offline learning activities' })).toBeVisible();
-  await page.goto('/demo');
-  await expect(page.getByText('2 wins saved')).toBeVisible();
+test('@claim:demo-sandbox discards changed sample progress on exit and keeps it out of real data', async ({ browser }) => {
+  await withIsolatedPage(browser, async (page, context) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Try it with sample data' }).click();
+    await expect(page).toHaveURL(/\?demo=1$/);
+    await expect(page.getByLabel('Demo mode')).toContainText('Demo — sample data, nothing is saved');
+    await expect(page.getByRole('heading', { name: 'Choose an activity' })).toBeVisible();
+    await expect(page.getByText('2 wins saved')).toBeVisible();
+    await page.getByRole('button', { name: 'Start Pattern Quarry' }).click();
+    await expect(page).toHaveURL(/\/demo\/activity\/patterns$/);
+    await expect(page.getByLabel('Demo mode')).toBeVisible();
+    await page.locator('[data-action="answer-option"][data-value="●"]').click();
+    await expect(page.getByRole('heading', { name: 'Good noticing!' })).toBeVisible();
+    await page.getByRole('button', { name: 'Station board' }).click();
+    await expect(page.getByText('3 wins saved')).toBeVisible();
+    await page.evaluate(() => navigator.serviceWorker.ready);
+    await page.reload();
+    await context.setOffline(true);
+    await page.reload();
+    await expect(page.getByLabel('Demo mode')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Choose an activity' })).toBeVisible();
+    await context.setOffline(false);
+    await page.getByRole('button', { name: 'Start for real' }).click();
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.getByRole('heading', { name: 'Start offline learning activities' })).toBeVisible();
+    await page.goto('/demo');
+    await expect(page.getByText('2 wins saved')).toBeVisible();
+  });
 });
 
 test('@claim:local-only demo activity use does not send data off this origin', async ({ page }) => {
@@ -346,112 +375,143 @@ test('@claim:input-paths supports keyboard and touch-style drawing controls', as
   await expect(page.getByRole('heading', { name: /points saved/ })).toBeVisible();
 });
 
-test('@claim:update-notice applies a real waiting service worker update and reloads under the new controller', async ({ page }) => {
-  await page.goto('/demo');
-  await page.evaluate(() => navigator.serviceWorker.ready);
-  await page.reload();
-  await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
-  await page.evaluate(() => navigator.serviceWorker.register('/sw-test-vnext.js'));
-  await expect.poll(() => page.evaluate(() => navigator.serviceWorker.getRegistration().then((registration) => Boolean(registration?.waiting)))).toBe(true);
-  await page.evaluate(() => window.dispatchEvent(new Event('station:update-ready')));
-  const changed = page.waitForEvent('framenavigated');
-  await page.getByRole('button', { name: 'Update now' }).click();
-  await changed;
-  await expect.poll(() => page.evaluate(async () => (await caches.match('/update-marker'))?.text())).toBe('vnext');
-  await expect.poll(() => page.evaluate(() => navigator.serviceWorker.controller?.scriptURL.endsWith('/sw-test-vnext.js'))).toBe(true);
-});
-
-test('@claim:paid-bundle verified license provides five rounds and detailed printouts', async ({ page }) => {
-  let checks = 0;
-  await page.route('https://api.sociobot.in/api/v1/products/linux-learning-station/verify?license=test-license', async (route) => {
-    checks += 1;
-    await route.fulfill({ status: 200, contentType: 'application/json', body: '{"valid":true}' });
+test('@claim:update-notice applies a real waiting service worker update and reloads under the new controller', async ({ browser }) => {
+  await withIsolatedPage(browser, async (page) => {
+    await page.goto('/demo');
+    await page.evaluate(() => navigator.serviceWorker.ready);
+    await page.reload();
+    await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+    await page.evaluate(() => navigator.serviceWorker.register('/sw-test-vnext.js'));
+    await expect.poll(() => page.evaluate(() => navigator.serviceWorker.getRegistration().then((registration) => Boolean(registration?.waiting)))).toBe(true);
+    await page.evaluate(() => window.dispatchEvent(new Event('station:update-ready')));
+    const changed = page.waitForEvent('framenavigated');
+    await page.getByRole('button', { name: 'Update now' }).click();
+    await changed;
+    await expect.poll(() => page.evaluate(async () => (await caches.match('/update-marker'))?.text())).toBe('vnext');
+    await expect.poll(() => page.evaluate(() => navigator.serviceWorker.controller?.scriptURL.endsWith('/sw-test-vnext.js'))).toBe(true);
   });
-  await page.goto('/demo');
-  await page.getByRole('button', { name: 'Adult tools', exact: true }).click();
-  await page.getByLabel('Paste license token').fill('test-license');
-  await page.getByRole('button', { name: 'Verify license' }).click();
-  await expect(page.getByRole('heading', { name: 'Workshop bundle unlocked' })).toBeVisible();
-  expect(checks).toBe(1);
-  await page.getByRole('button', { name: 'Close adult tools' }).click();
-  await page.getByRole('button', { name: 'Start Pattern Quarry' }).click();
-  for (const answer of ['●', '▲', '●', '●', '▲']) {
-    await page.locator(`[data-action="answer-option"][data-value="${answer}"]`).click();
-    await page.getByRole('button', { name: /Next round|Finish session/ }).click();
+});
+
+test('regression: closing a prior isolated reload context leaves the browser available for the paid-bundle claim', async ({ browser }) => {
+  const priorContext = await browser.newContext({ baseURL: TEST_BASE_URL });
+  try {
+    const priorPage = await priorContext.newPage();
+    await priorPage.goto('/demo');
+    await priorPage.reload();
+  } finally {
+    await priorContext.close();
   }
-  await expect(page.getByRole('heading', { name: '50 points saved' })).toBeVisible();
-  await page.getByRole('button', { name: 'Station board' }).click();
-  await page.getByRole('button', { name: 'Adult tools', exact: true }).click();
-  await page.emulateMedia({ media: 'print' });
-  await expect(page.locator('.print-sheet').getByRole('heading', { name: 'Recent practice' })).toBeVisible();
-});
 
-test('@claim:license-local-storage restoring through Adult tools keeps only the token and verdict in browser license storage', async ({ page }) => {
-  const token = 'local-storage-test-token';
-  await page.route(`https://api.sociobot.in/api/v1/products/linux-learning-station/verify?license=${token}`, async (route) => route.fulfill({ status: 200, contentType: 'application/json', body: '{"valid":true}' }));
-  await page.goto('/demo');
-  await page.getByRole('button', { name: 'Adult tools', exact: true }).click();
-  await page.getByLabel('Paste license token').fill(token);
-  await page.getByRole('button', { name: 'Verify license' }).click();
-  await expect(page.getByRole('heading', { name: 'Workshop bundle unlocked' })).toBeVisible();
-
-  const stored = await page.evaluate(async (expectedToken) => {
-    const tokenKey = 'sb_license:linux-learning-station';
-    const verdictKey = 'sb_license_verdict:linux-learning-station';
-    const verdict = JSON.parse(localStorage.getItem(verdictKey) ?? 'null') as { valid?: boolean; checkedAt?: number } | null;
-    const databaseNames = (await indexedDB.databases()).map(({ name }) => name).filter(Boolean);
-    const databaseText = await new Promise<string>((resolve, reject) => {
-      const open = indexedDB.open('linux-learning-station-demo');
-      open.onerror = () => reject(open.error);
-      open.onsuccess = () => {
-        const database = open.result;
-        const read = database.transaction('station').objectStore('station').getAll();
-        read.onerror = () => reject(read.error);
-        read.onsuccess = () => { database.close(); resolve(JSON.stringify(read.result)); };
-      };
+  expect(browser.isConnected()).toBe(true);
+  await withIsolatedPage(browser, async (page) => {
+    await page.route('https://api.sociobot.in/api/v1/products/linux-learning-station/verify?license=post-reload-license', async (route) => {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: '{"valid":true}' });
     });
-    return {
-      token: localStorage.getItem(tokenKey),
-      verdict,
-      licenseKeys: Object.keys(localStorage).filter((key) => key.startsWith('sb_license')),
-      sessionKeys: Object.keys(sessionStorage),
-      databaseNames,
-      databaseContainsToken: databaseText.includes(expectedToken),
-    };
-  }, token);
-  expect(stored.token).toBe(token);
-  expect(stored.verdict?.valid).toBe(true);
-  expect(stored.verdict?.checkedAt).toEqual(expect.any(Number));
-  expect(stored.licenseKeys.sort()).toEqual(['sb_license:linux-learning-station', 'sb_license_verdict:linux-learning-station']);
-  expect(stored.sessionKeys).toEqual([]);
-  expect(stored.databaseNames).toContain('linux-learning-station-demo');
-  expect(stored.databaseContainsToken).toBe(false);
+    await page.goto('/demo');
+    await page.getByRole('button', { name: 'Adult tools', exact: true }).click();
+    await page.getByLabel('Paste license token').fill('post-reload-license');
+    await page.getByRole('button', { name: 'Verify license' }).click();
+    await expect(page.getByRole('heading', { name: 'Workshop bundle unlocked' })).toBeVisible();
+  });
 });
 
-test('@claim:license-request-privacy restoring a license sends only its token and no learning progress', async ({ page }) => {
+test('@claim:paid-bundle verified license provides five rounds and detailed printouts', async ({ browser }) => {
+  await withIsolatedPage(browser, async (page) => {
+    let checks = 0;
+    await page.route('https://api.sociobot.in/api/v1/products/linux-learning-station/verify?license=test-license', async (route) => {
+      checks += 1;
+      await route.fulfill({ status: 200, contentType: 'application/json', body: '{"valid":true}' });
+    });
+    await page.goto('/demo');
+    await page.getByRole('button', { name: 'Adult tools', exact: true }).click();
+    await page.getByLabel('Paste license token').fill('test-license');
+    await page.getByRole('button', { name: 'Verify license' }).click();
+    await expect(page.getByRole('heading', { name: 'Workshop bundle unlocked' })).toBeVisible();
+    expect(checks).toBe(1);
+    await page.getByRole('button', { name: 'Close adult tools' }).click();
+    await page.getByRole('button', { name: 'Start Pattern Quarry' }).click();
+    for (const answer of ['●', '▲', '●', '●', '▲']) {
+      await page.locator(`[data-action="answer-option"][data-value="${answer}"]`).click();
+      await page.getByRole('button', { name: /Next round|Finish session/ }).click();
+    }
+    await expect(page.getByRole('heading', { name: '50 points saved' })).toBeVisible();
+    await page.getByRole('button', { name: 'Station board' }).click();
+    await page.getByRole('button', { name: 'Adult tools', exact: true }).click();
+    await page.emulateMedia({ media: 'print' });
+    await expect(page.locator('.print-sheet').getByRole('heading', { name: 'Recent practice' })).toBeVisible();
+  });
+});
+
+test('@claim:license-local-storage restoring through Adult tools keeps only the token and verdict in browser license storage', async ({ browser }) => {
+  const token = 'local-storage-test-token';
+  await withIsolatedPage(browser, async (page) => {
+    await page.route(`https://api.sociobot.in/api/v1/products/linux-learning-station/verify?license=${token}`, async (route) => route.fulfill({ status: 200, contentType: 'application/json', body: '{"valid":true}' }));
+    await page.goto('/demo');
+    await page.getByRole('button', { name: 'Adult tools', exact: true }).click();
+    await page.getByLabel('Paste license token').fill(token);
+    await page.getByRole('button', { name: 'Verify license' }).click();
+    await expect(page.getByRole('heading', { name: 'Workshop bundle unlocked' })).toBeVisible();
+
+    const stored = await page.evaluate(async (expectedToken) => {
+      const tokenKey = 'sb_license:linux-learning-station';
+      const verdictKey = 'sb_license_verdict:linux-learning-station';
+      const verdict = JSON.parse(localStorage.getItem(verdictKey) ?? 'null') as { valid?: boolean; checkedAt?: number } | null;
+      const databaseNames = (await indexedDB.databases()).map(({ name }) => name).filter(Boolean);
+      const databaseText = await new Promise<string>((resolve, reject) => {
+        const open = indexedDB.open('linux-learning-station-demo');
+        open.onerror = () => reject(open.error);
+        open.onsuccess = () => {
+          const database = open.result;
+          const read = database.transaction('station').objectStore('station').getAll();
+          read.onerror = () => reject(read.error);
+          read.onsuccess = () => { database.close(); resolve(JSON.stringify(read.result)); };
+        };
+      });
+      return {
+        token: localStorage.getItem(tokenKey),
+        verdict,
+        licenseKeys: Object.keys(localStorage).filter((key) => key.startsWith('sb_license')),
+        sessionKeys: Object.keys(sessionStorage),
+        databaseNames,
+        databaseContainsToken: databaseText.includes(expectedToken),
+      };
+    }, token);
+    expect(stored.token).toBe(token);
+    expect(stored.verdict?.valid).toBe(true);
+    expect(stored.verdict?.checkedAt).toEqual(expect.any(Number));
+    expect(stored.licenseKeys.sort()).toEqual(['sb_license:linux-learning-station', 'sb_license_verdict:linux-learning-station']);
+    expect(stored.sessionKeys).toEqual([]);
+    expect(stored.databaseNames).toContain('linux-learning-station-demo');
+    expect(stored.databaseContainsToken).toBe(false);
+  });
+});
+
+test('@claim:license-request-privacy restoring a license sends only its token and no learning progress', async ({ browser }) => {
   const token = 'opaque-restore-token';
   const requests: import('@playwright/test').Request[] = [];
-  await page.route('https://api.sociobot.in/api/v1/products/linux-learning-station/verify**', async (route) => {
-    requests.push(route.request());
-    await route.fulfill({ status: 200, contentType: 'application/json', body: '{"valid":true}' });
-  });
-  await page.goto('/demo');
-  await expect(page.getByText('2 wins saved')).toBeVisible();
-  await page.getByRole('button', { name: 'Adult tools', exact: true }).click();
-  await page.getByLabel('Paste license token').fill(token);
-  await page.getByRole('button', { name: 'Verify license' }).click();
-  await expect(page.getByRole('heading', { name: 'Workshop bundle unlocked' })).toBeVisible();
+  await withIsolatedPage(browser, async (page) => {
+    await page.route('https://api.sociobot.in/api/v1/products/linux-learning-station/verify**', async (route) => {
+      requests.push(route.request());
+      await route.fulfill({ status: 200, contentType: 'application/json', body: '{"valid":true}' });
+    });
+    await page.goto('/demo');
+    await expect(page.getByText('2 wins saved')).toBeVisible();
+    await page.getByRole('button', { name: 'Adult tools', exact: true }).click();
+    await page.getByLabel('Paste license token').fill(token);
+    await page.getByRole('button', { name: 'Verify license' }).click();
+    await expect(page.getByRole('heading', { name: 'Workshop bundle unlocked' })).toBeVisible();
 
-  expect(requests).toHaveLength(1);
-  const sent = requests[0];
-  const url = new URL(sent.url());
-  expect(sent.method()).toBe('GET');
-  expect(sent.postData()).toBeNull();
-  expect(url.origin).toBe('https://api.sociobot.in');
-  expect(url.pathname).toBe('/api/v1/products/linux-learning-station/verify');
-  expect([...url.searchParams.entries()]).toEqual([['license', token]]);
-  expect(sent.headers()['cookie']).toBeUndefined();
-  expect(decodeURIComponent(url.search).toLowerCase()).not.toMatch(/age|answer|drawing|progress|attempt|activity/);
+    expect(requests).toHaveLength(1);
+    const sent = requests[0];
+    const url = new URL(sent.url());
+    expect(sent.method()).toBe('GET');
+    expect(sent.postData()).toBeNull();
+    expect(url.origin).toBe('https://api.sociobot.in');
+    expect(url.pathname).toBe('/api/v1/products/linux-learning-station/verify');
+    expect([...url.searchParams.entries()]).toEqual([['license', token]]);
+    expect(sent.headers()['cookie']).toBeUndefined();
+    expect(decodeURIComponent(url.search).toLowerCase()).not.toMatch(/age|answer|drawing|progress|attempt|activity/);
+  });
 });
 
 test('@claim:age-ranges opens distinct guided content for each age range', async ({ page }) => {
@@ -468,48 +528,52 @@ test('@claim:age-ranges opens distinct guided content for each age range', async
   }
 });
 
-test('@claim:checkout-purchase opens hosted checkout and accepts the returned license', async ({ page }) => {
+test('@claim:checkout-purchase opens hosted checkout and accepts the returned license', async ({ browser }) => {
   const checkoutRequests: import('@playwright/test').Request[] = [];
   const token = 'returned-checkout-license';
-  await page.route('https://api.sociobot.in/api/v1/products/linux-learning-station/checkout', async (route) => {
-    checkoutRequests.push(route.request());
-    await route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><html lang="en"><title>Secure checkout</title><body><main><h1>Secure checkout</h1></main></body></html>' });
-  });
-  await page.goto('/');
-  const buy = page.getByRole('link', { name: 'Buy workshop bundle — ₹499' });
-  await expect(buy).toHaveAttribute('href', 'https://api.sociobot.in/api/v1/products/linux-learning-station/checkout');
-  await buy.click();
-  await expect(page).toHaveURL('https://api.sociobot.in/api/v1/products/linux-learning-station/checkout');
-  await expect(page.getByRole('heading', { name: 'Secure checkout' })).toBeVisible();
-  expect(checkoutRequests).toHaveLength(1);
-  expect(checkoutRequests[0].method()).toBe('GET');
-  expect(checkoutRequests[0].postData()).toBeNull();
-  expect(new URL(checkoutRequests[0].url()).search).toBe('');
-  expect(checkoutRequests[0].headers()['cookie']).toBeUndefined();
+  await withIsolatedPage(browser, async (page) => {
+    await page.route('https://api.sociobot.in/api/v1/products/linux-learning-station/checkout', async (route) => {
+      checkoutRequests.push(route.request());
+      await route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><html lang="en"><title>Secure checkout</title><body><main><h1>Secure checkout</h1></main></body></html>' });
+    });
+    await page.goto('/');
+    const buy = page.getByRole('link', { name: 'Buy workshop bundle — ₹499' });
+    await expect(buy).toHaveAttribute('href', 'https://api.sociobot.in/api/v1/products/linux-learning-station/checkout');
+    await buy.click();
+    await expect(page).toHaveURL('https://api.sociobot.in/api/v1/products/linux-learning-station/checkout');
+    await expect(page.getByRole('heading', { name: 'Secure checkout' })).toBeVisible();
+    expect(checkoutRequests).toHaveLength(1);
+    expect(checkoutRequests[0].method()).toBe('GET');
+    expect(checkoutRequests[0].postData()).toBeNull();
+    expect(new URL(checkoutRequests[0].url()).search).toBe('');
+    expect(checkoutRequests[0].headers()['cookie']).toBeUndefined();
 
-  await page.route(`https://api.sociobot.in/api/v1/products/linux-learning-station/verify?license=${token}`, async (route) => {
-    await route.fulfill({ status: 200, contentType: 'application/json', body: '{"valid":true}' });
+    await page.route(`https://api.sociobot.in/api/v1/products/linux-learning-station/verify?license=${token}`, async (route) => {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: '{"valid":true}' });
+    });
+    await page.goto(`/demo?license=${token}`);
+    await expect(page).toHaveURL('/demo');
+    await expect.poll(() => page.evaluate(() => localStorage.getItem('sb_license:linux-learning-station'))).toBe(token);
+    await page.getByRole('button', { name: 'Adult tools', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Workshop bundle unlocked' })).toBeVisible();
   });
-  await page.goto(`/demo?license=${token}`);
-  await expect(page).toHaveURL('/demo');
-  await expect.poll(() => page.evaluate(() => localStorage.getItem('sb_license:linux-learning-station'))).toBe(token);
-  await page.getByRole('button', { name: 'Adult tools', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Workshop bundle unlocked' })).toBeVisible();
 });
 
-test('@claim:daily-license-check verifies a stored license no more than once per day', async ({ page }) => {
+test('@claim:daily-license-check verifies a stored license no more than once per day', async ({ browser }) => {
   let checks = 0;
-  await page.route('https://api.sociobot.in/api/v1/products/linux-learning-station/verify?license=test-license', async (route) => {
-    checks += 1;
-    await route.fulfill({ status: 200, contentType: 'application/json', body: '{"valid":true}' });
+  await withIsolatedPage(browser, async (page) => {
+    await page.route('https://api.sociobot.in/api/v1/products/linux-learning-station/verify?license=test-license', async (route) => {
+      checks += 1;
+      await route.fulfill({ status: 200, contentType: 'application/json', body: '{"valid":true}' });
+    });
+    await page.goto('/demo');
+    await page.evaluate(() => localStorage.setItem('sb_license:linux-learning-station', 'test-license'));
+    await page.reload();
+    await expect.poll(() => checks).toBe(1);
+    await page.reload();
+    await page.waitForTimeout(300);
+    expect(checks).toBe(1);
   });
-  await page.goto('/demo');
-  await page.evaluate(() => localStorage.setItem('sb_license:linux-learning-station', 'test-license'));
-  await page.reload();
-  await expect.poll(() => checks).toBe(1);
-  await page.reload();
-  await page.waitForTimeout(300);
-  expect(checks).toBe(1);
 });
 
 test('regressions: demo route, round focus, recovery handler, and 44px mobile targets', async ({ page }) => {
@@ -536,16 +600,18 @@ test('regression: back and forward leave activity answers stable for immediate i
   await expect(page.getByRole('heading', { name: 'Good noticing!' })).toBeVisible();
 });
 
-test('regression: blocked IndexedDB recovery reloads without inline script', async ({ page }) => {
-  const errors: string[] = [];
-  page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
-  await page.addInitScript(() => Object.defineProperty(window, 'indexedDB', { configurable: true, get: () => { throw new Error('blocked for test'); } }));
-  await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'The station could not open' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Try again' })).not.toHaveAttribute('onclick');
-  await Promise.all([page.waitForEvent('domcontentloaded'), page.getByRole('button', { name: 'Try again' }).click()]);
-  await expect(page.getByRole('heading', { name: 'The station could not open' })).toBeVisible();
-  expect(errors.filter((message) => /content security policy|refused to execute/i.test(message))).toEqual([]);
+test('regression: blocked IndexedDB recovery reloads without inline script', async ({ browser }) => {
+  await withIsolatedPage(browser, async (page) => {
+    const errors: string[] = [];
+    page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
+    await page.addInitScript(() => Object.defineProperty(window, 'indexedDB', { configurable: true, get: () => { throw new Error('blocked for test'); } }));
+    await page.goto('/');
+    await expect(page.getByRole('heading', { name: 'The station could not open' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Try again' })).not.toHaveAttribute('onclick');
+    await Promise.all([page.waitForEvent('domcontentloaded'), page.getByRole('button', { name: 'Try again' }).click()]);
+    await expect(page.getByRole('heading', { name: 'The station could not open' })).toBeVisible();
+    expect(errors.filter((message) => /content security policy|refused to execute/i.test(message))).toEqual([]);
+  });
 });
 
 test('accessibility smoke: cold, demo, activity, adult tools, privacy, and terms', async ({ page }) => {
@@ -591,11 +657,13 @@ test('regressions: exact typing, valid 9–10 logic, dialog cancel, titles, and 
   await expect(page.getByRole('heading', { name: 'Good noticing!' })).toBeVisible();
 });
 
-test('regression: corrupt cached license verdict cannot block startup', async ({ page }) => {
-  await page.addInitScript(() => {
-    localStorage.setItem('sb_license:linux-learning-station', 'sample-token');
-    localStorage.setItem('sb_license_verdict:linux-learning-station', '{bad json');
+test('regression: corrupt cached license verdict cannot block startup', async ({ browser }) => {
+  await withIsolatedPage(browser, async (page) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('sb_license:linux-learning-station', 'sample-token');
+      localStorage.setItem('sb_license_verdict:linux-learning-station', '{bad json');
+    });
+    await page.goto('/');
+    await expect(page.getByRole('heading', { name: 'Start offline learning activities' })).toBeVisible();
   });
-  await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'Start offline learning activities' })).toBeVisible();
 });
