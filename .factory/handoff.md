@@ -50,4 +50,4 @@ The suite now uses [`withIsolatedPage`](../tests/e2e/station.spec.ts) for every 
 
 ## Known limits and next steps
 
-No release-blocking product, accessibility, privacy, offline, payment, routing, or test-isolation issue is known. The paid-flow tests use recorded Sociobot responses and did not submit a card payment. This repair changes test infrastructure only, so the PWA build bytes are unchanged; publish the committed branch through the static deployment workflow and retain the live parity check after it completes.
+No release-blocking product, accessibility, privacy, offline, payment, routing, or test-isolation issue is known. The paid-flow tests use recorded Sociobot responses and did not submit a card payment. The repair is pushed to `origin/main`; because it changes test infrastructure only, the static PWA build bytes are unchanged from the audited live deployment.
