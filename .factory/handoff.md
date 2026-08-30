@@ -39,6 +39,7 @@ The suite now uses [`withIsolatedPage`](../tests/e2e/station.spec.ts) for every 
 - Type/lint: `npm run lint` — passed.
 - Unit: `npm run test:unit` — 4/4 passed.
 - Production build: `npm run build` — passed; `dist/index.html` produced. JS is 35.65 KB raw / 12.46 KB gzip; CSS is 18.98 KB raw / 5.00 KB gzip.
+- Fresh production mobile Lighthouse: Performance 99, Accessibility 100, Best Practices 100, SEO 100; FCP 1.0 s, LCP 1.4 s, TBT 150 ms, and CLS 0.
 - Claim manifest audit: 17 claims, 17 unique `@claim:` tests. Every exact command in `.factory/claims.json` was run independently from production preview and passed.
 - Full browser suite: `npx playwright test --reporter=list` — **32/32 passed in 35.0 s**, including the isolated-context regression followed by `@claim:paid-bundle`.
 - Local HTML/accessibility smoke: `/opt/fleet/lib/verify-url.sh http://127.0.0.1:4173 …` — 200, title, `lang=en`, one h1, main landmark, no missing image alt text, no unnamed buttons, and no console errors. Playwright axe scans in the suite and live audit found 0 serious/critical violations.
