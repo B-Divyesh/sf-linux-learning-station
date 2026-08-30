@@ -1,13 +1,13 @@
-import { chromium, expect, test, type Browser, type BrowserContext, type BrowserContextOptions, type Page } from '@playwright/test';
+import { expect, test, type Browser, type BrowserContext, type BrowserContextOptions, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { readFile } from 'node:fs/promises';
 
 const TEST_BASE_URL = 'http://127.0.0.1:4173';
 
 /**
- * Reload, offline, and license scenarios must never mutate the runner-owned
- * context. Closing that shared browser makes the following test fail before it
- * can exercise its claim. Only this disposable context is closed.
+ * Reload, offline, update, and license scenarios must never mutate the
+ * runner-owned context. The Playwright fixture owns the shared browser for
+ * this worker; these tests only create and tear down their own context.
  */
 async function withIsolatedPage<T>(
   browser: Browser,
@@ -408,48 +408,20 @@ test('@claim:input-paths supports keyboard and touch-style drawing controls', as
   await expect(page.getByRole('heading', { name: /points saved/ })).toBeVisible();
 });
 
-test('@claim:update-notice applies a real waiting service worker update and reloads under the new controller', async () => {
-  const updateBrowser = await chromium.launch();
-  try {
-    await withIsolatedPage(updateBrowser, async (page) => {
-      await page.goto('/demo');
-      await page.evaluate(() => navigator.serviceWorker.ready);
-      await page.reload();
-      await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
-      await page.evaluate(() => navigator.serviceWorker.register('/sw-test-vnext.js'));
-      await expect.poll(() => page.evaluate(() => navigator.serviceWorker.getRegistration().then((registration) => Boolean(registration?.waiting)))).toBe(true);
-      await page.evaluate(() => window.dispatchEvent(new Event('station:update-ready')));
-      const changed = page.waitForEvent('framenavigated');
-      await page.getByRole('button', { name: 'Update now' }).click();
-      await changed;
-      await expect.poll(() => page.evaluate(async () => (await caches.match('/update-marker'))?.text())).toBe('vnext');
-      await expect.poll(() => page.evaluate(() => navigator.serviceWorker.controller?.scriptURL.endsWith('/sw-test-vnext.js'))).toBe(true);
-    });
-  } finally {
-    await updateBrowser.close();
-  }
-});
-
-test('regression: closing a prior isolated reload context leaves the browser available for the paid-bundle claim', async ({ browser }) => {
-  const priorContext = await browser.newContext({ baseURL: TEST_BASE_URL });
-  try {
-    const priorPage = await priorContext.newPage();
-    await priorPage.goto('/demo');
-    await priorPage.reload();
-  } finally {
-    await priorContext.close();
-  }
-
-  expect(browser.isConnected()).toBe(true);
+test('@claim:update-notice applies a real waiting service worker update and reloads under the new controller', async ({ browser }) => {
   await withIsolatedPage(browser, async (page) => {
-    await page.route('https://api.sociobot.in/api/v1/products/linux-learning-station/verify?license=post-reload-license', async (route) => {
-      await route.fulfill({ status: 200, contentType: 'application/json', body: '{"valid":true}' });
-    });
     await page.goto('/demo');
-    await page.getByRole('button', { name: 'Adult tools', exact: true }).click();
-    await page.getByLabel('Paste license token').fill('post-reload-license');
-    await page.getByRole('button', { name: 'Verify license' }).click();
-    await expect(page.getByRole('heading', { name: 'Workshop bundle unlocked' })).toBeVisible();
+    await page.evaluate(() => navigator.serviceWorker.ready);
+    await page.reload();
+    await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+    await page.evaluate(() => navigator.serviceWorker.register('/sw-test-vnext.js'));
+    await expect.poll(() => page.evaluate(() => navigator.serviceWorker.getRegistration().then((registration) => Boolean(registration?.waiting)))).toBe(true);
+    await page.evaluate(() => window.dispatchEvent(new Event('station:update-ready')));
+    const changed = page.waitForEvent('framenavigated');
+    await page.getByRole('button', { name: 'Update now' }).click();
+    await changed;
+    await expect.poll(() => page.evaluate(async () => (await caches.match('/update-marker'))?.text())).toBe('vnext');
+    await expect.poll(() => page.evaluate(() => navigator.serviceWorker.controller?.scriptURL.endsWith('/sw-test-vnext.js'))).toBe(true);
   });
 });
 
@@ -728,4 +700,25 @@ test('regression: corrupt cached license verdict cannot block startup', async ({
     await page.goto('/');
     await expect(page.getByRole('heading', { name: 'Start offline learning activities' })).toBeVisible();
   });
+});
+
+test('regression: an isolated reload context tears down without closing the shared browser', async ({ browser }) => {
+  await withIsolatedPage(browser, async (page) => {
+    await page.goto('/demo');
+    await page.reload();
+    await expect(page.getByRole('heading', { name: 'Choose an activity' })).toBeVisible();
+  });
+
+  expect(browser.isConnected()).toBe(true);
+  await withIsolatedPage(browser, async (page) => {
+    await page.route('https://api.sociobot.in/api/v1/products/linux-learning-station/verify?license=post-reload-license', async (route) => {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: '{"valid":true}' });
+    });
+    await page.goto('/demo');
+    await page.getByRole('button', { name: 'Adult tools', exact: true }).click();
+    await page.getByLabel('Paste license token').fill('post-reload-license');
+    await page.getByRole('button', { name: 'Verify license' }).click();
+    await expect(page.getByRole('heading', { name: 'Workshop bundle unlocked' })).toBeVisible();
+  });
+  expect(browser.isConnected()).toBe(true);
 });
