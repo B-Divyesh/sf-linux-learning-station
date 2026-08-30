@@ -192,7 +192,7 @@ function activityView(id: ActivityId): string {
     <header class="activity-header"><p class="eyebrow">${info.kicker}</p><h1 tabindex="-1">${info.title}</h1>${!complete && id !== 'drawing' ? `<div class="round-meter" aria-label="Round ${current.round + 1} of ${roundCount()}"><span>Round ${current.round + 1} / ${roundCount()}</span><div><i data-progress="${(current.round / roundCount()) * 100}"></i></div></div>` : ''}</header>
     <section class="task-slab" tabindex="-1" data-round-focus>${complete ? `<div class="session-complete"><span class="big-stamp" aria-hidden="true">${current.score >= 20 ? '✓' : '↗'}</span><p class="eyebrow">Activity complete</p><h2>${current.score} points saved</h2><p>That practice is stored on this computer. Choose another activity, or take a break.</p><div class="button-row"><button class="button primary" data-action="restart-activity">Play again</button><button class="button secondary" data-action="home">Choose another activity</button></div></div>` : activityTask(id, current.round)}</section>
     ${!license.unlocked && !complete ? '<p class="core-note">Core session · 3 rounds. Adult tools has an optional five-round bundle.</p>' : ''}
-  </section>${footer()}`;
+  </section>${footer()}${adultPanel()}${printSheet()}`;
   return shell(`${demoBanner()}${content}`, 'activity');
 }
 

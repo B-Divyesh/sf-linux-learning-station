@@ -103,6 +103,18 @@ test('completes a pattern round and stores a win', async ({ page }) => {
   await expect(page.getByText('Round 2 / 3')).toBeVisible();
 });
 
+test('saved progress uses singular and plural win labels', async ({ page }) => {
+  await setup(page);
+  await page.getByRole('button', { name: 'Start Pattern Quarry' }).click();
+  await page.locator('[data-action="answer-option"][data-value="●"]').click();
+  await page.getByRole('button', { name: 'Station board' }).click();
+  await expect(page.getByText('1 win saved', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Start Logic Bridges' }).click();
+  await page.getByRole('button', { name: 'It is green', exact: true }).click();
+  await page.getByRole('button', { name: 'Station board' }).click();
+  await expect(page.getByText('2 wins saved', { exact: true })).toBeVisible();
+});
+
 test('typing, spelling, and drawing have working completion paths', async ({ page }) => {
   await setup(page, '5–6');
   await page.getByRole('button', { name: 'Start Key Trail' }).click();
@@ -129,6 +141,16 @@ test('adult tools expose local data and legal controls', async ({ page }) => {
   await expect(page.getByLabel('Adult tools', { exact: true }).getByText(/MOSS-78-/)).toBeVisible();
   await expect(page.getByLabel('Adult tools', { exact: true }).getByRole('link', { name: 'Buy workshop bundle — ₹499' })).toHaveAttribute('href', 'https://api.sociobot.in/api/v1/products/linux-learning-station/checkout');
   await expect(page.getByLabel('Legal').getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', '/privacy/');
+});
+
+test('activity footer opens working adult tools and returns focus on close', async ({ page }) => {
+  await page.goto('/demo/activity/numbers');
+  const open = page.getByRole('button', { name: 'Open adult tools', exact: true });
+  await open.click();
+  await expect(page.getByRole('heading', { name: 'Station controls' })).toBeVisible();
+  await expect(page.locator('.print-sheet')).toHaveCount(1);
+  await page.getByRole('button', { name: 'Close adult tools' }).click();
+  await expect(open).toBeFocused();
 });
 
 test('@claim:offline-reload demo station completes and saves activity while fully offline after first visit', async ({ browser }) => {
