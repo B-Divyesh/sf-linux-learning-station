@@ -1,64 +1,40 @@
-# Linux Learning Station — polish 5 handoff
+# Linux Learning Station — independent verification 8 handoff
 
-- Work order: `linux-learning-station-polish-5`
-- Reviewed candidate: `5e147de4c6dfe40de9704b35cf745bfbd169b417`
-- Review report: `b10b2cf3744d03ee78ea2dac3caeed9d5a94434e`
-- Repair commit: `21d33c4c9eb4c57df9eb237d7e295925b8560df1`
-- Product version: `v1.2.6`
-- Deployment: `c122c594-a1b0-4d8a-9c39-b4e1e2288bb7`
+- Work order: `linux-learning-station-verify-8`
+- Tested candidate: `457dcbaebb734ec7532b5ce3aa12835bdf256e75`
 - Live URL: <https://linux-learning-station.sociobot.in>
-- Result: **PASS — all cumulative review findings are closed.**
+- Verified: 2026-08-30 UTC
+- Result: **PASS — release accepted**
 
-## What changed
+The complete evidence and severity assessment are in [verification-8.md](verification-8.md). No product code was changed.
 
-- Closed F-5-1 through F-5-4: **workshop bundle** is the only paid-feature name; **license** is only the unlock token; landing privacy copy uses plain parent-facing language; and the two README instructions now contain one idea each.
-- Bumped the PWA, service-worker cache, manifest start URL, and footer build ID to `v1.2.6`, so installed stations receive the repair.
-- Added a browser regression that checks the landing, Adult tools, Privacy page, and README for the repaired terms.
-- Kept the reviewed concrete-and-moss board, original hero asset, PWA/local-first architecture, isolated `?demo=1` sample mode, real routes, legal pages, and existing claims behavior intact.
-- Updated the catalog description: “Start six private offline activities for ages 5–10 on a shared Linux computer; progress stays in the browser.” It is verb-first and 111 characters.
+## Verification summary
 
-The exhaustive finding map is in [polish-5.md](polish-5.md). The copy audit is in [copy-audit.md](copy-audit.md).
-
-## Verification
-
-Clean clone: `/tmp/linux-learning-station-clean.77VDuE` at `21d33c4c9eb4c57df9eb237d7e295925b8560df1`.
-
-- `npm ci` passed: 61 packages, zero audit vulnerabilities.
-- Every exact command listed in `.factory/claims.json` passed independently: **17/17**.
-- Claim cross-check: 17 manifest IDs, each with exactly one `@claim:<id>` test.
-- `npm test` passed: 4 Vitest tests and 35 Playwright tests.
+- Mandatory first-read gate passed at desktop and 390 px: the first screen plainly states the job, names parents/teachers of children aged 5–10, and offers one-click sample data.
+- All 17 exact claim commands passed independently after `npm ci`; each claim has exactly one tagged test.
+- `npm test` passed: 4/4 unit tests and 35/35 Playwright tests.
 - `npm run lint`, `npm run build`, and `npm audit --omit=dev` passed.
-- `dist/index.html` exists. The build has 35.71 kB raw / 12.45 kB gzip JS and 18.98 kB raw / 5.00 kB gzip CSS.
-- Local visual review at 390 × 844 confirmed the four first-screen facts remain above the age controls and the one-click demo has its persistent isolated banner.
-- The Playwright Axe integration found zero serious/critical violations on landing, demo, activity, Adult tools, Privacy, Terms, offline fallback, and 404.
+- `npm run verify:live` and `/opt/fleet/lib/verify-url.sh` passed with no normal-load console/page errors.
+- Six activities, three age ranges, invalid inputs, JSON import/export rejection, erase, print, demo isolation, paid fixture flow, keyboard use, 200% text, reduced motion, and recovery states passed.
+- Core-use traffic stayed same-origin. The license request sent only its token. Live response security and caching headers matched policy.
+- The product-specific verify endpoint allowed 30 requests; request 31 returned 429 with `Retry-After: 3`.
+- PWA installability, live offline reload/activity save, and real waiting-worker update behavior passed.
+- Fresh mobile Lighthouse scored 100 Performance / 100 Accessibility / 100 Best Practices / 100 SEO. LCP was 1.4 s, TBT 40 ms, CLS 0, and transfer 124 KiB.
+- All 19 publicly served build files matched the local production build byte for byte.
 
-## Live verification
-
-The configured static deployment completed as `c122c594-a1b0-4d8a-9c39-b4e1e2288bb7`. A cold live-browser check then passed at <https://linux-learning-station.sociobot.in>.
-
-- `verify-url.sh` passed: HTTPS 200, title, `lang=en`, one h1, main landmark, complete image alt handling, labelled buttons, and no console errors. Cold load was 619 ms.
-- Current live browser sweep passed: one-click demo, reset/exit isolation, offline activity save, six activity labels, 44 px targets, 200% text, deep-link focus, sitemap, designed 404, titles/metadata, legal links, no core external traffic, license request privacy, and Chromium installability.
-- Current live copy check confirms workshop-bundle wording on landing, Adult tools, Privacy, and Terms; no legacy paid-feature or third-party-script wording remains.
-- Playwright Axe found zero serious/critical findings. Lighthouse 12.8.2 scored **100 Performance / 100 Accessibility / 100 Best Practices / 100 SEO**.
-
-Evidence: [local cold mobile](polish-5-local/cold-mobile.png), [local demo mobile](polish-5-local/demo-mobile.png), [live cold mobile](polish-5-live/live-cold-mobile.png), [live demo mobile](polish-5-live/live-demo-mobile.png), [live 200% demo](polish-5-live/live-demo-200-percent.png), [live sweep](polish-5-live/live-check.json), [live copy check](polish-5-live/copy-check.json), [baseline verifier](polish-5-live/verify/verify.json), and [Lighthouse](polish-5-live/lighthouse.json).
-
-## Run and deploy
+## Run the verified gates
 
 ```sh
 npm ci
 npm test
 npm run lint
 npm run build
-npm run preview
+npm audit --omit=dev
+npm run verify:live
 ```
 
-Run each claim command exactly as listed in `.factory/claims.json`. Deploy the static output with:
+Run each exact command in `.factory/claims.json` separately for the claim gate.
 
-```sh
-/opt/fleet/lib/deploy-static.sh linux-learning-station dist
-```
+## Findings and known gaps
 
-## Known gaps
-
-None. No product, review, accessibility, privacy, demo, routing, PWA, mobile, or copy finding remains open.
+No release-blocking, high, medium, or low product defect was found. No real card payment or physical desktop installation was performed; checkout redirect/return behavior and Chromium installability were verified without those external side effects.
