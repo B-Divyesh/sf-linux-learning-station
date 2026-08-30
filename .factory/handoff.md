@@ -1,84 +1,53 @@
-# Linux Learning Station — repair 4 handoff
+# Linux Learning Station — repair 5 handoff
 
-- Work order: `linux-learning-station-repair-4`
-- Verifier report commit: `50ce534356ba7f08886a90395497d736ca618e26`
-- Repaired candidate: `d5731b8be6f23ea1a7aef9b213cb5993808ff7d6`
-- Source repair commit: `f0e1394`
-- Product version: `v1.2.4`
+- Work order: `linux-learning-station-repair-5`
+- Independent verifier report: [`verification-6.md`](verification-6.md), report commit `50ce534356ba7f08886a90395497d736ca618e26`
+- Verified candidate named by the report: `d5731b8be6f23ea1a7aef9b213cb5993808ff7d6`
+- Repair commit: `6ab52914c51302bc8efad07bedbac45bae303a68`
+- Product/version/deployment class: Linux Learning Station v1.2.4, static offline PWA
 - Live URL: <https://linux-learning-station.sociobot.in>
-- Azure Static Web Apps deployment: `667553fd-481f-44da-a9f0-4c7af4380ebe`
-- Verified: 2026-08-30 UTC
-- Result: **PASS — every finding in verification 6 is repaired**
+- Checked: 2026-08-30 UTC
+- Result: **PASS — verifier P1/P3 remain fixed, and the controller’s shared-browser failure is repaired.**
 
-## Finding repairs
+## Repairs
 
-### P1 — the ₹499 workshop bundle could not be purchased
+### Verifier P1 — ₹499 workshop checkout
 
-Root cause: the bundle was not registered as an enabled live Sociobot product, and the product exposed only existing-license restore.
+The preceding repair registered the one-time Sociobot/Dodo product and exposed `Buy workshop bundle — ₹499` on the landing page and in Adult tools. The live audit repeated the complete identity boundary: the visible link is exactly `https://api.sociobot.in/api/v1/products/linux-learning-station/checkout`, and the endpoint returned HTTP `303` to hosted `checkout.dodopayments.com`. The recorded checkout claim tests a fixture return token, strips it from the address bar, verifies it, stores its local verdict, and unlocks the bundle without a charge.
 
-Repair:
+### Verifier P3 — Back/Forward actionability flake
 
-- Registered `Linux Learning Station Workshop Bundle` as a live, one-time ₹499 Sociobot/Dodo product for the `linux-learning-station` slug.
-- Added a visible `Buy workshop bundle — ₹499` link to the landing price section and locked Adult tools panel. Both use the required Sociobot checkout URL.
-- Preserved the existing return-token flow: `?license=<token>` is stored under the product-scoped local key, removed from the address bar, verified through Sociobot, and reconciled without blocking the free experience.
-- Preserved the visible paste-and-verify restore path for buyers moving devices.
-- Updated Privacy, Terms, README, copy audit, and the claim manifest without changing the six free activities.
-- Replaced the obsolete `sales-paused` claim with `@claim:checkout-purchase`. Its recorded gateway fixture proves the exact request boundary, returned-token storage and URL stripping, verification, and unlocked UI without making a live charge.
+The existing no-smooth-scroll route repair remains effective. `npm run verify:live` now goes Back then Forward, confirms the new route heading has focus and `scroll-behavior: auto`, and immediately answers Pattern Quarry. It passed against production on this repair.
 
-Live evidence: the public checkout endpoint returns HTTP 303 to `checkout.dodopayments.com`. The hosted 390 px checkout shows the exact bundle name and description. Dodo localized ₹499 to `$5.23` for the US test browser and displayed its currency selector.
+### Controller regression — a preceding test closed the shared browser before `@claim:paid-bundle`
 
-### P3 — Back/Forward made the live verifier's answer click flaky
+Root cause: offline, reload, update, and license tests borrowed Playwright’s runner context. If a preceding lifecycle test closed the shared `Browser`, the next test failed before its first action with the exact error:
 
-Root cause: global smooth scrolling continued after History API navigation while the route heading received focus. The activity answer moved during Playwright's actionability check.
+```
+browser.newContext: Target page, context or browser has been closed
+```
 
-Repair:
+The failure was reproduced before the fix with a launched browser, a preceding context, `browser.close()`, and a subsequent `browser.newContext()` call.
 
-- Removed global smooth scrolling.
-- Route changes now synchronously scroll to the top and focus the new h1 with `preventScroll`.
-- Added a browser regression that enters an activity, goes Back then Forward, confirms `scroll-behavior: auto`, confirms heading focus, and immediately answers the round.
-- Updated the live verifier to assert the same behavior before the formerly flaky click.
+The suite now uses [`withIsolatedPage`](../tests/e2e/station.spec.ts) for every offline, reload, and license scenario. It calls `browser.newContext()` for each test and closes only that disposable context in `finally`; no `browser.close()` exists in `tests/e2e`. This covers offline reload, installability, demo readiness/reset, service-worker update, IndexedDB retry, paid bundle, returned checkout token, storage, token-only request privacy, daily recheck, and corrupt-license recovery.
 
-The immediate accessibility scan also exposed transient low contrast caused by panel opacity animation. The panel now moves only by transform, so its text keeps full contrast throughout the transition.
+[`regression: closing a prior isolated reload context…`](../tests/e2e/station.spec.ts) closes a prior isolated reload context, asserts the runner browser remains connected, opens a new context, and restores a license. The following exact [`@claim:paid-bundle`](../tests/e2e/station.spec.ts) test completed five paid rounds and verified the detailed printable history. The full ordered suite reaches both tests and passes.
 
-## Clean build and automated coverage
+## Verification evidence
 
-- `npm ci`: passed; 61 packages installed; zero audit findings.
-- All 17 exact test commands in `.factory/claims.json`: passed independently.
-- Claim/tag audit: 17 claims; exactly one `@claim:<id>` test for every claim.
-- `npm test`: passed — 4 unit tests and 31 Playwright tests.
-- `npm run lint`: passed.
-- `npm run build`: passed and produced `dist/index.html`.
-- `npm audit --omit=dev`: passed with zero vulnerabilities.
-- Production assets: JavaScript 35.65 KB raw / 12.46 KB gzip; CSS 18.98 KB raw / 5.00 KB gzip; no remote fonts or scripts.
+- Clean dependency install: `npm ci` — 61 packages installed; `npm audit --omit=dev` — 0 vulnerabilities.
+- Type/lint: `npm run lint` — passed.
+- Unit: `npm run test:unit` — 4/4 passed.
+- Production build: `npm run build` — passed; `dist/index.html` produced. JS is 35.65 KB raw / 12.46 KB gzip; CSS is 18.98 KB raw / 5.00 KB gzip.
+- Claim manifest audit: 17 claims, 17 unique `@claim:` tests. Every exact command in `.factory/claims.json` was run independently from production preview and passed.
+- Full browser suite: `npx playwright test --reporter=list` — **32/32 passed in 35.0 s**, including the isolated-context regression followed by `@claim:paid-bundle`.
+- Local HTML/accessibility smoke: `/opt/fleet/lib/verify-url.sh http://127.0.0.1:4173 …` — 200, title, `lang=en`, one h1, main landmark, no missing image alt text, no unnamed buttons, and no console errors. Playwright axe scans in the suite and live audit found 0 serious/critical violations.
+- Desktop and 390×844 mobile production screenshots were visually reviewed. The first action, age choices, privacy facts, and ₹499 purchase action are visible with no horizontal overflow; keyboard focus, dialog focus trap, drawing keyboard/touch input, 200% text, and reduced motion are covered by browser tests.
+- PWA/privacy: fresh-context offline reload saved a round, a real waiting worker update activated, manifest installability had no errors, demo data reset stayed isolated, and core-use requests were same-origin only. License restore sent a token-only GET to Sociobot; test fixtures made no spend.
+- Live audit: `npm run verify:live` — passed with zero console errors, no external core requests, 44 px minimum target, zero installability errors, offline activity pass, complete session shape, live checkout 303, valid route/404 handling, and zero serious/critical axe findings. The refreshed raw report is [`repair-4-live/live-check.json`](repair-4-live/live-check.json).
+- Live response policy: HTTPS root returned CSP including response-header `frame-ancestors 'none'`, HSTS, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, and `Permissions-Policy`.
+- Deployment parity: fresh local and live SHA-256 values matched for `index.html`, `sw.js`, `manifest.webmanifest`, the station mark, icons, hero image, hashed JS, and hashed CSS.
 
-The browser suite covers all six activity paths, three-round session shape, drawing, pointer/touch/keyboard operation, focus restoration, 200% text, demo isolation/reset/exit, import/export and erase boundaries, printing, license capture/restore/privacy, installability, service-worker update, offline save/reload, routes, metadata, and axe scans.
+## Known limits and next steps
 
-## Public deployment verification
-
-- `npm run verify:live`: passed against the public domain from fresh browser contexts. It reports zero console errors, no outside requests during core use, 44 px minimum targets, zero Chromium installability errors, working offline activity save, full session shape, license restoration, and zero serious/critical axe findings.
-- `/opt/fleet/lib/verify-url.sh`: passed with the expected title, `lang=en`, one h1, main landmark, complete alt text, labeled buttons, and zero console errors.
-- Desktop, 390×844 mobile, and 390 px at 200% text were visually checked. No horizontal overflow or hidden action was found.
-- Keyboard-only route and activity use passed. Route changes focus the h1; the skip link, dialogs, buttons, links, and answer controls remain reachable and visible.
-- Offline-after-first-visit and service-worker update flows passed in isolated browser contexts. The demo remains in its separate namespace.
-- Landing, demo, Adult tools after restore, Privacy, Terms, activities, and the designed 404 have zero serious or critical Playwright axe findings.
-- Root, demo, Privacy, Terms, and valid activity routes return 200. Invalid activity and arbitrary routes return the designed 404.
-- Response policy passed: CSP includes response-header `frame-ancestors 'none'`; HSTS, `X-Content-Type-Options`, `Referrer-Policy`, and `Permissions-Policy` are present. Hashed assets are immutable; the service worker is no-cache.
-- Deployed `index.html`, hashed JavaScript, hashed CSS, `sw.js`, and `manifest.webmanifest` are byte-for-byte equal to local `dist/`.
-- A unique invalid license returns `{ valid: false, reason: "invalid" }`; no production token was retained.
-- Lighthouse mobile: Performance 100, Accessibility 100, Best Practices 100, SEO 100; FCP 1.0 s, LCP 1.4 s, TBT 0 ms, CLS 0.
-
-Evidence:
-
-- [`repair-4-live/live-check.json`](repair-4-live/live-check.json)
-- [`repair-4-live/live-cold-mobile.png`](repair-4-live/live-cold-mobile.png)
-- [`repair-4-live/live-demo-mobile.png`](repair-4-live/live-demo-mobile.png)
-- [`repair-4-live/live-demo-200-percent.png`](repair-4-live/live-demo-200-percent.png)
-- [`repair-4-live/live-checkout-mobile.png`](repair-4-live/live-checkout-mobile.png)
-- [`repair-4-verify/verify.json`](repair-4-verify/verify.json)
-- [`repair-4-verify/screenshot-desktop.png`](repair-4-verify/screenshot-desktop.png)
-- [`repair-4-verify/screenshot-mobile.png`](repair-4-verify/screenshot-mobile.png)
-- [`repair-4-lighthouse.json`](repair-4-lighthouse.json)
-
-## Remaining limits
-
-No release-blocking product, claim, accessibility, privacy, offline, routing, identity, or deployment gap is known. The repair did not submit a real card payment, so it created no financial transaction. Product registration, live checkout identity, return-token handling, verification, restore, and invalid-token behavior were verified without charging a card.
+No release-blocking product, accessibility, privacy, offline, payment, routing, or test-isolation issue is known. The paid-flow tests use recorded Sociobot responses and did not submit a card payment. This repair changes test infrastructure only, so the PWA build bytes are unchanged; publish the committed branch through the static deployment workflow and retain the live parity check after it completes.
