@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-08-30T01:15:00Z",
+  "productSlug": "linux-learning-station",
+  "checkoutEndpoint": "https://api.sociobot.in/api/v1/products/linux-learning-station/checkout",
+  "returnPathTemplate": "/demo?license={{LICENSE_TOKEN}}",
+  "offer": {
+    "name": "Workshop bundle",
+    "currency": "INR",
+    "amountMinor": 49900,
+    "billing": "one_time"
+  },
+  "response": {
+    "status": 200,
+    "contentType": "text/html",
+    "body": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>Workshop bundle checkout</title></head><body><main><h1>Workshop bundle checkout</h1><dl><div><dt>Price</dt><dd>₹499</dd></div><div><dt>Billing</dt><dd>One-time purchase</dd></div></dl><p>No recurring charge</p><a href=\"{{RETURN_URL}}\">Complete recorded purchase</a></main></body></html>"
+  }
+}

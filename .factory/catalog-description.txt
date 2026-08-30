@@ -1,1 +1,1 @@
-Start six offline activities for ages 5–10 on a shared Linux computer, with no child account or tracking.
+Start six offline activities for ages 5–10 on a shared Linux computer, with progress kept in the browser.

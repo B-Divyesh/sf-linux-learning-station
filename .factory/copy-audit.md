@@ -1,4 +1,4 @@
-# Copy audit — repair 4
+# Copy audit — polish 4
 
 The rendered landing page was read in order at 390 px and desktop width. Counts use whitespace-separated words. Every sentence is 22 words or fewer, no banned marketing term appears, and every action names its result. Claim-like copy maps to the tagged tests in `.factory/claims.json`.
 
@@ -9,7 +9,7 @@ The rendered landing page was read in order at 390 px and desktop width. Counts 
 | Demo | 1 | Pass |
 | Privacy | 1 | Pass |
 | Online / Ready offline / Offline | 1 / 2 / 1 | Pass |
-| Adult tools | 2 | Pass |
+| Open adult tools | 3 | Pass |
 | Offline activities for shared Linux computers | 6 | Pass |
 | Start offline learning activities | 4 | Pass |
 | For parents and teachers setting up a shared computer for children aged 5–10. | 13 | Pass |
@@ -19,7 +19,7 @@ The rendered landing page was read in order at 390 px and desktop width. Counts 
 | Six core activities are free | 5 | Pass |
 | Progress stays on this computer | 5 | Pass |
 | Works offline after the first visit | 6 | Pass |
-| Optional bundle: ₹499 once | 4 | Pass |
+| Optional bundle: ₹499 once | 4 | Pass — `checkout-purchase` verifies INR 499.00 and one-time billing |
 | Choose an age range | 5 | Pass |
 | Start activities for ages 5–6 / 7–8 / 9–10 | 5 | Pass — `age-ranges` |
 | Open the station board | 4 | Pass |
@@ -37,17 +37,17 @@ The rendered landing page was read in order at 390 px and desktop width. Counts 
 | The station does not send activity progress to us. | 9 | Pass |
 | It has no ads, chat, cloud profile, or third-party scripts. | 10 | Pass |
 | Read the privacy details | 4 | Pass |
-| Optional activity bundle — ₹499 once | 6 | Pass |
+| Optional activity bundle — ₹499 once | 6 | Pass — `checkout-purchase` |
 | Adds five-round sessions and detailed printouts. | 6 | Pass |
 | Every core activity stays free. | 5 | Pass |
-| Buy workshop bundle — ₹499 | 4 | Pass — `checkout-purchase` follows the checkout redirect |
+| Buy workshop bundle — ₹499 | 4 | Pass — `checkout-purchase` checks the recorded hosted offer and returned license |
 | Opens secure Sociobot checkout. | 4 | Pass |
 | After payment, return here to use the bundle. | 8 | Pass |
 | Already bought it? | 3 | Pass |
 | Restore the license in Adult tools. | 6 | Pass — `paid-bundle` uses the visible form |
 | Six local activities for shared Linux computers. | 7 | Pass |
 | Built by Param Factory | 4 | Pass |
-| v1.2.4 | 1 | Pass |
+| v1.2.5 | 1 | Pass |
 | A rugged concrete computer desk with moss, a keyboard, paper objects, and a blank screen | 15 | Pass |
 
 ## Demo board action audit
@@ -63,7 +63,16 @@ The rendered landing page was read in order at 390 px and desktop width. Counts 
 | Reset demo | 2 | Pass |
 | Start for real | 3 | Pass |
 
-The Terms installation sentence has 19 words and uses “station,” not the implementation term “PWA.” Purchase, refund, and revocation wording now matches the registered Sociobot/Dodo product contract.
+The Terms installation sentence has 19 words and uses “station,” not the implementation term “PWA.” Provider-role, refund-handler, and refund-revocation assertions are absent from Privacy and Terms.
+
+## README deployment copy
+
+| Copy | Words | Result |
+| --- | ---: | --- |
+| This is a static Vite application. | 6 | Pass |
+| Build with `npm ci && npm run build`. | 7 | Pass |
+| Publish `dist/` as the site root. | 6 | Pass |
+| `staticwebapp.config.json` defines routes, the 404 page, headers, and cache rules. | 9 | Pass |
 
 ## Terminology
 

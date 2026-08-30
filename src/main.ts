@@ -15,7 +15,7 @@ let feedback = '';
 let activityState: { id: ActivityId; round: number; score: number; result?: { correct: boolean; answer: string } } | null = null;
 let routeMessage = '';
 let offlineReady = false;
-const BUILD_VERSION = 'v1.2.4';
+const BUILD_VERSION = 'v1.2.5';
 const SITE_URL = 'https://linux-learning-station.sociobot.in';
 
 const esc = (value: string) => value.replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char]!);
@@ -46,7 +46,7 @@ function shell(content: string, page = 'home'): string {
       <nav class="site-nav" aria-label="Primary navigation"><a href="/demo">Demo</a><a href="/privacy/">Privacy</a></nav>
       <div class="status-chips" aria-label="Station status">
         <span class="status-chip" id="connection-status"><span class="status-dot" aria-hidden="true"></span>${navigator.onLine ? (offlineReady ? 'Ready offline' : 'Online') : 'Offline'}</span>
-        ${page === 'home' ? '<button class="utility-button" data-action="toggle-adult" aria-expanded="' + adultOpen + '">Adult tools</button>' : ''}
+        ${page === 'home' ? '<button class="utility-button" data-action="toggle-adult" aria-label="Adult tools" aria-expanded="' + adultOpen + '">Open adult tools</button>' : ''}
       </div>
     </header>
     <main id="main">${content}</main>

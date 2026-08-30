@@ -47,7 +47,7 @@ Playwright is pinned to 1.58.2. In the factory worker image its Chromium binary 
 
 ## Deploy
 
-This is a static Vite application. Run `npm ci && npm run build` and publish the `dist/` directory as the site root. `staticwebapp.config.json` is emitted with the build and supplies activity/demo rewrites, a designed 404 response, security headers, and immutable asset caching.
+This is a static Vite application. Build with `npm ci && npm run build`. Publish `dist/` as the site root. `staticwebapp.config.json` defines routes, the 404 page, headers, and cache rules.
 
 ## Project records
 

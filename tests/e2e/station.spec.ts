@@ -1,5 +1,6 @@
 import { expect, test, type Browser, type BrowserContext, type BrowserContextOptions, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { readFile } from 'node:fs/promises';
 
 const TEST_BASE_URL = 'http://127.0.0.1:4173';
 
@@ -122,6 +123,7 @@ test('typing, spelling, and drawing have working completion paths', async ({ pag
 
 test('adult tools expose local data and legal controls', async ({ page }) => {
   await setup(page);
+  await expect(page.locator('.utility-button')).toHaveText('Open adult tools');
   await page.getByRole('button', { name: 'Adult tools', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Station controls' })).toBeVisible();
   await expect(page.getByLabel('Adult tools', { exact: true }).getByText(/MOSS-78-/)).toBeVisible();
@@ -168,7 +170,7 @@ test('@claim:installable-pwa Chromium accepts the demo as an installable app', a
     const data = JSON.parse(manifest.data ?? '{}');
     expect(data).toMatchObject({
       name: 'Linux Learning Station',
-      start_url: '/?source=pwa&v=1.2.4',
+      start_url: '/?source=pwa&v=1.2.5',
       display: 'standalone',
     });
     expect(data.icons).toEqual(expect.arrayContaining([
@@ -186,6 +188,15 @@ test('privacy and terms are real standalone pages', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1, name: 'Terms' })).toBeVisible();
   await expect(page.getByText('You may install the station on devices you control')).toBeVisible();
   await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute('content', 'summary_large_image');
+  await expect(page.locator('main')).not.toContainText(/Dodo|merchant of record|refund|charge reversal/i);
+  await page.goto('/privacy/');
+  await expect(page.locator('main')).not.toContainText(/Dodo|merchant of record|refund|charge reversal/i);
+  await page.goto('/offline.html');
+  await expect(page).toHaveTitle('Offline — Linux Learning Station');
+  await expect(page.getByRole('heading', { level: 1, name: 'The station is offline' })).toBeVisible();
+  await expect(page.locator('style, [style]')).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'Privacy' }).first()).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Terms' })).toBeVisible();
 });
 
 test('real activity deep links survive setup and set route-specific metadata', async ({ page }) => {
@@ -528,20 +539,42 @@ test('@claim:age-ranges opens distinct guided content for each age range', async
   }
 });
 
-test('@claim:checkout-purchase opens hosted checkout and accepts the returned license', async ({ browser }) => {
+test('@claim:checkout-purchase recorded hosted offer proves ₹499 one-time checkout and accepts the returned license', async ({ browser }) => {
+  const fixture = JSON.parse(await readFile('tests/fixtures/checkout-session.json', 'utf8')) as {
+    schemaVersion: number;
+    productSlug: string;
+    checkoutEndpoint: string;
+    returnPathTemplate: string;
+    offer: { currency: string; amountMinor: number; billing: string };
+    response: { status: number; contentType: string; body: string };
+  };
   const checkoutRequests: import('@playwright/test').Request[] = [];
   const token = 'returned-checkout-license';
   await withIsolatedPage(browser, async (page) => {
-    await page.route('https://api.sociobot.in/api/v1/products/linux-learning-station/checkout', async (route) => {
+    expect(fixture).toMatchObject({
+      schemaVersion: 1,
+      productSlug: 'linux-learning-station',
+      checkoutEndpoint: 'https://api.sociobot.in/api/v1/products/linux-learning-station/checkout',
+      offer: { currency: 'INR', amountMinor: 49900, billing: 'one_time' },
+    });
+    const checkoutBody = fixture.response.body.replaceAll(
+      '{{RETURN_URL}}',
+      `${TEST_BASE_URL}${fixture.returnPathTemplate.replace('{{LICENSE_TOKEN}}', token)}`,
+    );
+    await page.route(fixture.checkoutEndpoint, async (route) => {
       checkoutRequests.push(route.request());
-      await route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><html lang="en"><title>Secure checkout</title><body><main><h1>Secure checkout</h1></main></body></html>' });
+      await route.fulfill({ status: fixture.response.status, contentType: fixture.response.contentType, body: checkoutBody });
     });
     await page.goto('/');
+    await expect(page.getByText('Optional bundle: ₹499 once', { exact: true })).toBeVisible();
     const buy = page.getByRole('link', { name: 'Buy workshop bundle — ₹499' });
-    await expect(buy).toHaveAttribute('href', 'https://api.sociobot.in/api/v1/products/linux-learning-station/checkout');
+    await expect(buy).toHaveAttribute('href', fixture.checkoutEndpoint);
     await buy.click();
-    await expect(page).toHaveURL('https://api.sociobot.in/api/v1/products/linux-learning-station/checkout');
-    await expect(page.getByRole('heading', { name: 'Secure checkout' })).toBeVisible();
+    await expect(page).toHaveURL(fixture.checkoutEndpoint);
+    await expect(page.getByRole('heading', { name: 'Workshop bundle checkout' })).toBeVisible();
+    await expect(page.getByText('₹499', { exact: true })).toBeVisible();
+    await expect(page.getByText('One-time purchase', { exact: true })).toBeVisible();
+    await expect(page.getByText('No recurring charge', { exact: true })).toBeVisible();
     expect(checkoutRequests).toHaveLength(1);
     expect(checkoutRequests[0].method()).toBe('GET');
     expect(checkoutRequests[0].postData()).toBeNull();
@@ -551,7 +584,7 @@ test('@claim:checkout-purchase opens hosted checkout and accepts the returned li
     await page.route(`https://api.sociobot.in/api/v1/products/linux-learning-station/verify?license=${token}`, async (route) => {
       await route.fulfill({ status: 200, contentType: 'application/json', body: '{"valid":true}' });
     });
-    await page.goto(`/demo?license=${token}`);
+    await page.getByRole('link', { name: 'Complete recorded purchase' }).click();
     await expect(page).toHaveURL('/demo');
     await expect.poll(() => page.evaluate(() => localStorage.getItem('sb_license:linux-learning-station'))).toBe(token);
     await page.getByRole('button', { name: 'Adult tools', exact: true }).click();
@@ -629,6 +662,8 @@ test('accessibility smoke: cold, demo, activity, adult tools, privacy, and terms
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/privacy/'); await scan();
   await page.goto('/terms/'); await scan();
+  await page.goto('/offline.html'); await scan();
+  await page.goto('/not-a-real-route'); await scan();
 });
 
 test('regressions: exact typing, valid 9–10 logic, dialog cancel, titles, and focus trap', async ({ page }) => {
