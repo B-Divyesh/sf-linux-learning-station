@@ -70,3 +70,4 @@ Evidence paths used below are [the cold first screen](polish-3-live/live-cold-mo
 - `npm run lint`, `npm run build`, and `npm audit --omit=dev` pass. The build emits `dist/index.html`; JavaScript is 35.17 KB raw / 12.33 KB gzip and CSS is 18.98 KB raw / 4.99 KB gzip.
 - Local Lighthouse mobile: Performance 100, Accessibility 100, Best Practices 100, SEO 100; FCP 0.9 s, LCP 1.8 s, TBT 0 ms, CLS 0.
 - The workbench’s concrete, moss, lichen, heavy-rule, and offset-shadow identity is unchanged. The original documented station image remains the only hero art.
+- A clean-clone run crossing UTC midnight exposed stale fixed demo dates. The seed now keeps its two wins on the previous day and its two-point practice on the current day, so **Today** remains truthful.

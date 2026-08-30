@@ -5,15 +5,24 @@ const DB_NAME = 'linux-learning-station';
 const STORE = 'station';
 const DEFAULTS: Settings = { ageBand: '7–8', setupDone: false, sound: false };
 
-export const demoStation = (): StationData => ({
-  settings: { ageBand: '7–8', setupDone: true, sound: false },
-  attempts: [
-    { id: 'demo-pattern', activity: 'patterns', correct: true, points: 10, detail: 'Solved a shape pattern', createdAt: '2026-08-28T10:00:00.000Z' },
-    { id: 'demo-keys', activity: 'keys', correct: true, points: 10, detail: 'Typed a trail carefully', createdAt: '2026-08-28T10:03:00.000Z' },
-    { id: 'demo-numbers', activity: 'numbers', correct: false, points: 2, detail: 'Practised number stones', createdAt: '2026-08-29T09:15:00.000Z' },
-  ],
-  updatedAt: '2026-08-29T09:15:00.000Z',
-});
+export const demoStation = (): StationData => {
+  const sampleTime = (daysAgo: number, hour: number, minute: number): string => {
+    const date = new Date();
+    date.setUTCDate(date.getUTCDate() - daysAgo);
+    date.setUTCHours(hour, minute, 0, 0);
+    return date.toISOString();
+  };
+  const updatedAt = sampleTime(0, 9, 15);
+  return {
+    settings: { ageBand: '7–8', setupDone: true, sound: false },
+    attempts: [
+      { id: 'demo-pattern', activity: 'patterns', correct: true, points: 10, detail: 'Solved a shape pattern', createdAt: sampleTime(1, 10, 0) },
+      { id: 'demo-keys', activity: 'keys', correct: true, points: 10, detail: 'Typed a trail carefully', createdAt: sampleTime(1, 10, 3) },
+      { id: 'demo-numbers', activity: 'numbers', correct: false, points: 2, detail: 'Practised number stones', createdAt: updatedAt },
+    ],
+    updatedAt,
+  };
+};
 
 function databaseName(): string { return isDemoMode() ? `${DB_NAME}-demo` : DB_NAME; }
 
