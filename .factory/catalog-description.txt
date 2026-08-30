@@ -1,1 +1,1 @@
-Start six offline activities for ages 5–10 on a shared Linux computer, with progress kept in the browser.
+Start six offline learning activities for ages 5–10 on a shared Linux computer, with progress stored in the browser.

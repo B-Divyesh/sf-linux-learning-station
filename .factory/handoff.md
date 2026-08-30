@@ -1,9 +1,9 @@
 # Linux Learning Station — polish 4 handoff
 
-- Work order: `linux-learning-station-polish-4`
+- Work order: `linux-learning-station-polish-4-retry1`
 - Reviewed candidate: `cfb948258b4c7b77dc14b080f18d5061d25a3292`
 - Review report: `95d386361011822906f7e4aebdcef31bc5ba3990`
-- Product repair commits: `aa46b32`, `c647902`, `8ca16ad`
+- Product repair commits: `aa46b32`, `c647902`, `8ca16ad`, `7a062c4`
 - Product version: `v1.2.5`
 - Final deployment: `0ed1b7fe-0c85-405d-91be-2a0d51854835`
 - Live URL: <https://linux-learning-station.sociobot.in>
@@ -17,21 +17,24 @@
 - Split the dense README deployment paragraph into short task-naming instructions.
 - Added explicit `1 win` / `2 wins` regression coverage.
 - Made the activity footer’s Adult tools action open a real panel and printable sheet, with focus returning after close.
-- Isolated the real service-worker update claim in its own browser process so the full suite cannot lose its shared browser.
+- Kept every offline, reload, update, and license assertion inside a disposable `browser.newContext()` owned by the Playwright fixture. The tests never launch or close the fixture browser.
+- Added a final teardown regression that closes a reloaded context, opens a fresh license-restore context, and proves the shared browser remains connected.
 - Rebuilt the offline fallback with the shared product shell and external stylesheet, eliminating its inline-style CSP violation.
-- Updated the catalog line to a 105-character, verb-first description.
+- Updated the catalog line to a 116-character, verb-first description.
 - Preserved the brutalist concrete-and-moss identity and original documented hero asset.
 
 The complete finding map is in [polish-4.md](polish-4.md).
 
 ## Exact verification evidence
 
-Final clean clone: `/tmp/lls-polish4-final.22qWqB` at `8ca16ad4877845b409b7e7bd887c726ba90b277f`.
+Retry clean clone: `/tmp/linux-learning-station-clean.sSsBFH` at `7a062c4384d767da4f41bfc20e73ca93a539656d`.
 
 - `npm ci`: passed; 61 packages installed; zero reported vulnerabilities.
 - Every `test` command in `.factory/claims.json`: passed independently, 17/17.
 - Claim cross-check: every manifest ID has exactly one `@claim:<id>` test.
 - `npm test`: passed; 4 Vitest tests and 34 Playwright tests.
+- `@claim:update-notice`: passed in the fixture-owned disposable context; no standalone browser was created or closed.
+- Isolated-teardown regression: passed after closing a reloaded context and opening a fresh license-restore context; `browser.isConnected()` stayed `true` before and after the second teardown.
 - `npm run lint`: passed.
 - `npm run build`: passed; `dist/index.html` present.
 - `npm audit --omit=dev`: passed with zero vulnerabilities.

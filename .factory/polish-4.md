@@ -1,9 +1,9 @@
 # Polish 4 — cumulative adversarial repair map
 
-- Work order: `linux-learning-station-polish-4`
+- Work order: `linux-learning-station-polish-4-retry1`
 - Released candidate: `cfb948258b4c7b77dc14b080f18d5061d25a3292`
 - Review report commit: `95d386361011822906f7e4aebdcef31bc5ba3990`
-- Product repair commits: `aa46b32`, `c647902`, `8ca16ad`
+- Product repair commits: `aa46b32`, `c647902`, `8ca16ad`, `7a062c4`
 - Product build: `v1.2.5`
 - Final deployment: `0ed1b7fe-0c85-405d-91be-2a0d51854835`
 - Live URL: <https://linux-learning-station.sociobot.in>
@@ -17,7 +17,7 @@ Primary evidence is in [`polish-4-live/live-check.json`](polish-4-live/live-chec
 | --- | --- | --- |
 | F-1-1 | All six core activities remain usable without a license gate. | `@claim:six-free-activities`; `@claim:core-session-shape`; live demo screenshot. |
 | F-1-2 | The promise says “after the first visit,” and an activity completes and saves after a controlled offline reload. | `@claim:offline-reload`; live check `offlineActivity`. |
-| F-1-3 | Applying the update uses a real waiting worker and verifies activation, reload, cache replacement, and the new controller. The test now owns a separate browser process so it cannot close the suite browser. | `@claim:update-notice`; final clean-clone full suite. |
+| F-1-3 | Applying the update uses a real waiting worker and verifies activation, reload, cache replacement, and the new controller. It runs inside one disposable `browser.newContext()` and never launches or closes the fixture-owned browser. | `@claim:update-notice`; clean-clone full suite; final isolated-context teardown regression. |
 | F-1-4 | **Start for real** discards changed demo progress and never copies it into real storage. | `@claim:demo-sandbox`; live check `demoIsolation`. |
 | F-1-5 | Valid deep links survive setup; metadata follows routes; invalid activity slugs return the designed HTTP 404. | `real activity deep links…`; `invalid activity routes…`; live `/activity/patterns` and invalid-route checks. |
 | F-1-6 | Copy distinguishes five guided three-round activities from one open drawing session, with full completion proof. | `@claim:core-session-shape`; live check `sessionShape`. |
@@ -78,9 +78,10 @@ Primary evidence is in [`polish-4-live/live-check.json`](polish-4-live/live-chec
 
 ## Additional acceptance evidence
 
-- Final clean clone: `/tmp/lls-polish4-final.22qWqB` at `8ca16ad4877845b409b7e7bd887c726ba90b277f`.
+- Retry clean clone: `/tmp/linux-learning-station-clean.sSsBFH` at `7a062c4384d767da4f41bfc20e73ca93a539656d`.
 - Every one of the 17 exact claim commands passed separately; a source check found exactly one matching `@claim:<id>` per manifest entry.
 - `npm test` passed 4 unit tests and 34 Playwright tests. `npm run lint`, `npm run build`, and `npm audit --omit=dev` passed.
+- The retry changes every offline, reload, update, and license assertion to use a disposable `browser.newContext()`. The final Playwright test closes a reload context, opens a new license-restore context, and confirms `browser.isConnected()` before and after. No test calls `browser.close()` on the fixture browser.
 - Build output: JavaScript 35.70 KB raw / 12.46 KB gzip; CSS 18.98 KB raw / 5.00 KB gzip; `dist/index.html` exists.
 - Local and live Lighthouse: Performance 100, Accessibility 100, Best Practices 100, SEO 100. Live FCP 0.9 s, LCP 1.4 s, TBT 0 ms, CLS 0, total transfer 120 KiB.
 - Live baseline verifier: correct title and language, one h1, one main, complete alt text, labelled buttons, and zero console errors.
